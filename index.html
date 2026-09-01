@@ -14,7 +14,7 @@
   <!-- Canvas Confetti CDN -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   
-  <!-- MQTT.js for Real-Time Cross-Device Sync -->
+  <!-- MQTT.js for Fallback Cloud Sync -->
   <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 
   <style>
@@ -96,7 +96,7 @@
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 16px 20px 40px;
+      padding: 14px 18px 36px;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -125,7 +125,7 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--card-border);
       border-radius: var(--radius-lg);
-      margin-bottom: 22px;
+      margin-bottom: 20px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
     }
     .logo-group {
@@ -403,8 +403,8 @@
     /* HOST / MAIN STAGE VIEW */
     .host-stage {
       display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 30px;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 26px;
       align-items: start;
     }
     @media (max-width: 960px) {
@@ -423,16 +423,16 @@
 
     .wheel-outer-ring {
       position: relative;
-      width: min(100%, 460px);
+      width: min(100%, 390px);
       aspect-ratio: 1;
-      padding: 18px;
+      padding: 16px;
       background: radial-gradient(circle, #271a48 0%, #130d29 80%, #080614 100%);
       border-radius: 50%;
       box-shadow:
-        0 0 0 6px rgba(255, 255, 255, 0.08),
-        0 0 45px rgba(138, 43, 226, 0.45),
-        inset 0 0 35px rgba(0, 0, 0, 0.85);
-      margin-bottom: 22px;
+        0 0 0 5px rgba(255, 255, 255, 0.08),
+        0 0 40px rgba(138, 43, 226, 0.45),
+        inset 0 0 30px rgba(0, 0, 0, 0.85);
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -542,9 +542,9 @@
     /* Big Spin Trigger Button */
     .spin-grand-btn {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 32px;
+      font-size: 28px;
       letter-spacing: 0.08em;
-      padding: 16px 54px;
+      padding: 13px 46px;
       border-radius: var(--radius-full);
       background: linear-gradient(135deg, #FF007F 0%, #FF5400 50%, #FFE600 100%);
       color: #FFFFFF;
@@ -588,7 +588,7 @@
     .panels-column {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
     }
     .glass-card {
       background: var(--card-bg);
@@ -596,14 +596,14 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--card-border);
       border-radius: var(--radius-lg);
-      padding: 20px 22px;
+      padding: 18px 20px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
     }
     .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .panel-title {
       font-size: 18px;
@@ -651,7 +651,7 @@
     /* Participants List */
     .participants-list {
       list-style: none;
-      max-height: 240px;
+      max-height: 230px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -715,9 +715,9 @@
     }
     .empty-placeholder {
       text-align: center;
-      padding: 24px 10px;
+      padding: 20px 10px;
       color: var(--text-muted);
-      font-size: 14px;
+      font-size: 13.5px;
       border: 1px dashed rgba(255, 255, 255, 0.15);
       border-radius: var(--radius-md);
     }
@@ -793,9 +793,9 @@
     .qr-card {
       display: flex;
       align-items: center;
-      gap: 18px;
-      background: linear-gradient(135deg, rgba(138, 43, 226, 0.2) 0%, rgba(0, 240, 255, 0.15) 100%);
-      border: 1px solid rgba(0, 240, 255, 0.3);
+      gap: 16px;
+      background: linear-gradient(135deg, rgba(138, 43, 226, 0.22) 0%, rgba(0, 240, 255, 0.16) 100%);
+      border: 1px solid rgba(0, 240, 255, 0.35);
     }
     .qr-image-wrap {
       background: white;
@@ -803,21 +803,34 @@
       border-radius: 12px;
       flex-shrink: 0;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
     }
     .qr-image-wrap img {
       display: block;
-      width: 86px;
-      height: 86px;
+      width: 90px;
+      height: 90px;
     }
     .qr-info h4 {
       font-size: 16px;
       margin-bottom: 4px;
     }
     .qr-info p {
-      font-size: 12.5px;
+      font-size: 12px;
       color: var(--text-muted);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       line-height: 1.4;
+    }
+    .qr-link-badge {
+      font-size: 12px;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--neon-cyan);
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+      cursor: pointer;
+      margin-top: 4px;
+      word-break: break-all;
     }
     .room-code-display {
       font-family: 'Bebas Neue', sans-serif;
@@ -907,7 +920,7 @@
       min-height: 24px;
     }
 
-    /* MODAL WINDOWS (WINNER & PASTE LIST) */
+    /* MODAL WINDOWS (WINNER & PASTE LIST & QR) */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -929,7 +942,7 @@
       background: linear-gradient(145deg, #241945 0%, #120c24 100%);
       border: 2px solid var(--neon-yellow);
       border-radius: var(--radius-lg);
-      padding: 36px 30px;
+      padding: 34px 28px;
       max-width: 440px;
       width: 100%;
       text-align: center;
@@ -1012,11 +1025,11 @@
     }
 
     @media (max-width: 480px) {
-      #app { padding: 12px 14px 30px; }
+      #app { padding: 10px 12px 28px; }
       .header-bar { padding: 10px 14px; }
       .logo-title { font-size: 22px; }
-      .wheel-outer-ring { padding: 14px; }
-      .spin-grand-btn { font-size: 26px; padding: 14px 36px; }
+      .wheel-outer-ring { padding: 14px; width: min(100%, 330px); }
+      .spin-grand-btn { font-size: 24px; padding: 12px 34px; }
     }
   </style>
 </head>
@@ -1137,68 +1150,119 @@
 
     const audio = new AudioEngine();
 
-    // --- Real-Time Multi-Device Synchronization (MQTT over WebSocket + BroadcastChannel) ---
+    // --- Robust Multi-Layer Synchronization Manager (Native WebSocket + Cloud MQTT + BroadcastChannel) ---
     class SyncManager {
       constructor(roomCode, onMessageCallback) {
         this.roomCode = roomCode;
         this.onMessage = onMessageCallback;
-        this.client = null;
+        this.ws = null;
+        this.mqttClient = null;
         this.connected = false;
+        this.clientId = 'client_' + Math.random().toString(36).substr(2, 8);
         this.broadcastChannel = null;
+
         this.initBroadcast();
-        this.connectMQTT();
+        this.connectNativeWS();
       }
 
       initBroadcast() {
         if (typeof BroadcastChannel !== 'undefined') {
-          this.broadcastChannel = new BroadcastChannel('ruleta_room_' + this.roomCode);
-          this.broadcastChannel.onmessage = (event) => {
-            if (this.onMessage) this.onMessage(event.data);
-          };
+          try {
+            this.broadcastChannel = new BroadcastChannel('ruleta_room_' + this.roomCode);
+            this.broadcastChannel.onmessage = (event) => {
+              if (this.onMessage && event.data && event.data.senderId !== this.clientId) {
+                this.onMessage(event.data);
+              }
+            };
+          } catch (e) {}
         }
       }
 
-      connectMQTT() {
-        if (typeof mqtt === 'undefined') return;
+      connectNativeWS() {
+        // Connect to native Node.js WebSocket server if available
+        let wsHost = window.location.host;
+        if (state.serverUrl && state.serverUrl.startsWith('http')) {
+          try {
+            wsHost = new URL(state.serverUrl).host;
+          } catch (e) {}
+        }
 
-        const clientId = 'ruleta_' + Math.random().toString(16).substring(2, 10);
-        const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
-        
+        if (!wsHost || wsHost === '' || window.location.protocol === 'file:') {
+          this.connectCloudMQTT();
+          return;
+        }
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${wsHost}`;
+
         try {
-          this.client = mqtt.connect(brokerUrl, {
-            clientId: clientId,
+          this.ws = new WebSocket(wsUrl);
+
+          this.ws.onopen = () => {
+            this.connected = true;
+            this.ws.send(JSON.stringify({ action: 'JOIN_ROOM', room: this.roomCode, clientId: this.clientId }));
+            triggerRender();
+          };
+
+          this.ws.onmessage = (event) => {
+            try {
+              const msg = JSON.parse(event.data);
+              if (msg && msg.senderId !== this.clientId) {
+                if (this.onMessage) this.onMessage(msg);
+              }
+            } catch (err) {}
+          };
+
+          this.ws.onclose = () => {
+            this.connected = false;
+            triggerRender();
+            // Fallback to Cloud MQTT if local WS fails
+            this.connectCloudMQTT();
+          };
+
+          this.ws.onerror = () => {
+            this.connected = false;
+            this.connectCloudMQTT();
+          };
+        } catch (e) {
+          this.connectCloudMQTT();
+        }
+      }
+
+      connectCloudMQTT() {
+        if (this.mqttClient || typeof mqtt === 'undefined') return;
+
+        try {
+          const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
+          this.mqttClient = mqtt.connect(brokerUrl, {
+            clientId: this.clientId,
             clean: true,
-            connectTimeout: 6000,
-            reconnectPeriod: 3000
+            connectTimeout: 5000,
+            reconnectPeriod: 4000
           });
 
-          this.client.on('connect', () => {
+          this.mqttClient.on('connect', () => {
             this.connected = true;
-            const topic = `ruleta_app/${this.roomCode}/#`;
-            this.client.subscribe(topic, { qos: 0 });
+            this.mqttClient.subscribe(`ruleta_app/${this.roomCode}/events`);
             triggerRender();
           });
 
-          this.client.on('message', (topic, payload) => {
+          this.mqttClient.on('message', (topic, payload) => {
             try {
               const msg = JSON.parse(payload.toString());
-              if (msg && msg.senderId !== clientId) {
+              if (msg && msg.senderId !== this.clientId) {
                 if (this.onMessage) this.onMessage(msg);
               }
             } catch (err) {}
           });
 
-          this.client.on('close', () => {
-            this.connected = false;
-            triggerRender();
+          this.mqttClient.on('close', () => {
+            if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+              this.connected = false;
+              triggerRender();
+            }
           });
-
-          this.client.on('error', () => {
-            this.connected = false;
-          });
-        } catch (e) {
-          console.error('MQTT connection error:', e);
-        }
+        } catch (e) {}
       }
 
       send(action, data = {}) {
@@ -1206,17 +1270,25 @@
           action: action,
           data: data,
           room: this.roomCode,
-          senderId: this.client ? this.client.options.clientId : 'local',
+          senderId: this.clientId,
           timestamp: Date.now()
         };
 
+        // 1. BroadcastChannel (same PC tabs)
         if (this.broadcastChannel) {
           try { this.broadcastChannel.postMessage(payload); } catch (e) {}
         }
 
-        if (this.client && this.connected) {
-          const topic = `ruleta_app/${this.roomCode}/events`;
-          this.client.publish(topic, JSON.stringify(payload));
+        // 2. Native WebSocket (local Wi-Fi mobile sync)
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          try { this.ws.send(JSON.stringify(payload)); } catch (e) {}
+        }
+
+        // 3. Cloud MQTT (internet fallback)
+        if (this.mqttClient && this.mqttClient.connected) {
+          try {
+            this.mqttClient.publish(`ruleta_app/${this.roomCode}/events`, JSON.stringify(payload));
+          } catch (e) {}
         }
       }
     }
@@ -1226,6 +1298,8 @@
       view: 'select', // 'select' | 'host' | 'mobile'
       mobileTab: 'remote', // 'remote' | 'participants'
       roomCode: '',
+      serverUrl: window.location.origin,
+      localIp: '192.168.1.36',
       participants: [
         { id: '1', name: 'Ana García' },
         { id: '2', name: 'Carlos López' },
@@ -1243,6 +1317,22 @@
       sync: null,
       angle: 0 // Current rotation in radians
     };
+
+    // Auto-detect server network IP
+    async function fetchServerInfo() {
+      try {
+        const res = await fetch('/api/info');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.url) state.serverUrl = data.url;
+          if (data.localIp) state.localIp = data.localIp;
+        }
+      } catch (e) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          state.serverUrl = `http://${state.localIp}:3000`;
+        }
+      }
+    }
 
     function showToast(msg) {
       const toast = document.getElementById('toast');
@@ -1394,7 +1484,7 @@
 
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
-      const size = Math.min(rect.width || 420, rect.height || 420);
+      const size = Math.min(rect.width || 380, rect.height || 380);
       
       canvas.width = size * dpr;
       canvas.height = size * dpr;
@@ -1411,7 +1501,6 @@
       ctx.clearRect(0, 0, size, size);
 
       if (n === 0) {
-        // Empty state
         ctx.beginPath();
         ctx.arc(cx, cy, radius, 0, Math.PI * 2);
         ctx.fillStyle = '#16102D';
@@ -1421,7 +1510,7 @@
         ctx.stroke();
 
         ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        ctx.font = 'bold 16px "Outfit", sans-serif';
+        ctx.font = 'bold 15px "Outfit", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('Agrega participantes para comenzar', cx, cy);
@@ -1445,8 +1534,6 @@
         ctx.arc(0, 0, radius, startA, endA);
         ctx.closePath();
 
-        // Vibrant gradient per sector for 3D depth
-        const midA = startA + sliceAngle / 2;
         const grad = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius);
         grad.addColorStop(0, color);
         grad.addColorStop(1, adjustColorBrightness(color, -25));
@@ -1470,24 +1557,25 @@
         ctx.stroke();
 
         // Text Label Along the Sector Spoke
+        const midA = startA + sliceAngle / 2;
         ctx.save();
         ctx.rotate(midA);
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#FFFFFF';
         ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-        ctx.shadowBlur = 5;
+        ctx.shadowBlur = 4;
         ctx.shadowOffsetX = 1;
         ctx.shadowOffsetY = 1;
 
-        const fontSize = n > 24 ? 11 : n > 14 ? 13 : n > 8 ? 15 : 18;
+        const fontSize = n > 24 ? 11 : n > 14 ? 13 : n > 8 ? 15 : 17;
         ctx.font = `800 ${fontSize}px "Outfit", sans-serif`;
 
         let label = participants[i].name;
         const maxLen = n > 20 ? 10 : 16;
         if (label.length > maxLen) label = label.slice(0, maxLen - 1) + '…';
 
-        ctx.fillText(label, radius - 18, 0);
+        ctx.fillText(label, radius - 20, 0);
         ctx.restore();
       }
 
@@ -1522,15 +1610,10 @@
 
       const extraRotations = predefinedExtra || (6 + Math.floor(Math.random() * 3));
       
-      // Pointer is located at TOP (-Math.PI / 2).
-      // When the wheel rotates by angle A, the angle at the top corresponds to:
-      // ( -Math.PI / 2 - A ) mod 2*PI.
-      // We want this to land on the winner sector: winnerIndex * sliceAngle + sliceAngle / 2.
       const targetSectorMid = winnerIndex * sliceAngle + sliceAngle / 2;
       const jitter = (Math.random() - 0.5) * (sliceAngle * 0.65);
       const desiredFinalTopAngle = targetSectorMid + jitter;
       
-      // Compute total target angle
       const twoPi = Math.PI * 2;
       const currentNorm = ((state.angle % twoPi) + twoPi) % twoPi;
       const neededLanding = ((3 * Math.PI / 2 - desiredFinalTopAngle) % twoPi + twoPi) % twoPi;
@@ -1539,7 +1622,6 @@
 
       const startAngle = state.angle;
       const totalDelta = extraRotations * twoPi + deltaAngle;
-      const targetAngle = startAngle + totalDelta;
 
       const duration = 5400; // ms
       const startTime = performance.now();
@@ -1558,7 +1640,6 @@
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Quintic / Quartic ease-out curve for dramatic casino-grade slowdown
         const ease = 1 - Math.pow(1 - progress, 4.2);
         state.angle = startAngle + totalDelta * ease;
 
@@ -1717,7 +1798,7 @@
           
           <div class="header-actions">
             ${state.roomCode ? `
-              <div class="sync-status ${isConnected ? '' : 'offline'}" title="${isConnected ? 'Sincronizado vía Cloud WebSockets' : 'Conectando sincronización...'}">
+              <div class="sync-status ${isConnected ? '' : 'offline'}" title="${isConnected ? 'Sincronizado vía WebSocket' : 'Conectando sincronización...'}">
                 <span class="status-dot"></span>
                 <span>${isConnected ? 'Sincronizado' : 'Conectando'}</span>
               </div>
@@ -1779,8 +1860,8 @@
     }
 
     function renderHostScreen() {
-      const qrTargetUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}&mode=mobile`;
-      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(qrTargetUrl)}`;
+      const mobileUrl = `${state.serverUrl}?room=${state.roomCode}&mode=mobile`;
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(mobileUrl)}`;
 
       return `
         ${renderHeader()}
@@ -1825,7 +1906,7 @@
             </button>
             
             ${state.participants.length < 2 ? `
-              <p style="color:var(--text-muted); font-size:13.5px; margin-top:12px; text-align:center;">
+              <p style="color:var(--text-muted); font-size:13px; margin-top:10px; text-align:center;">
                 Agrega al menos 2 participantes para comenzar el sorteo.
               </p>
             ` : ''}
@@ -1836,14 +1917,17 @@
             
             <!-- Quick Mobile Connect Card -->
             <div class="glass-card qr-card">
-              <div class="qr-image-wrap">
-                <img src="${qrApiUrl}" alt="QR Sala ${state.roomCode}" onerror="this.src='https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=' + encodeURIComponent('${qrTargetUrl}')" />
+              <div class="qr-image-wrap" onclick="window.ruletaActions.toggleQRModal()" title="Clic para ampliar QR">
+                <img src="${qrApiUrl}" alt="QR Sala ${state.roomCode}" />
               </div>
-              <div class="qr-info">
-                <h4>Conectar Celular</h4>
-                <p>Escanea con la cámara de tu teléfono para ingresar nombres y girar a distancia.</p>
-                <div style="display:flex; align-items:baseline; gap:8px;">
-                  <span style="font-size:12px; color:var(--text-muted);">Código:</span>
+              <div class="qr-info" style="flex:1;">
+                <h4>📱 Sincronizar Celular</h4>
+                <p>Escanea el QR o abre en tu celular:</p>
+                <div class="qr-link-badge" onclick="window.ruletaActions.copyRoomLink('${mobileUrl}')" title="Clic para copiar enlace">
+                  ${mobileUrl}
+                </div>
+                <div style="display:flex; align-items:baseline; gap:8px; margin-top:6px;">
+                  <span style="font-size:12px; color:var(--text-muted);">Código de Sala:</span>
                   <span class="room-code-display">${state.roomCode}</span>
                 </div>
               </div>
@@ -2054,8 +2138,8 @@
 
     function renderQRModal() {
       if (!state.qrModalOpen) return '';
-      const qrTargetUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}&mode=mobile`;
-      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(qrTargetUrl)}`;
+      const mobileUrl = `${state.serverUrl}?room=${state.roomCode}&mode=mobile`;
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(mobileUrl)}`;
 
       return `
         <div class="modal-overlay" onclick="if(event.target === this) window.ruletaActions.toggleQRModal()">
@@ -2063,18 +2147,24 @@
             <h3 class="panel-title" style="justify-content:center; margin-bottom:8px; font-size:20px;">
               <span>📱 Conectar Teléfono Celular</span>
             </h3>
-            <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
-              Abre la cámara de tu celular y escanea el código para unirte a la sala.
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">
+              Abre la cámara de tu celular o el navegador y conéctate a la misma red Wi-Fi:
             </p>
-            <div style="background:white; padding:12px; border-radius:16px; display:inline-block; margin-bottom:16px;">
+            <div style="background:white; padding:12px; border-radius:16px; display:inline-block; margin-bottom:14px;">
               <img src="${qrApiUrl}" style="width:200px; height:200px; display:block;" alt="Código QR" />
             </div>
-            <div style="margin-bottom:20px;">
+            
+            <div style="background:rgba(255,255,255,0.06); padding:10px; border-radius:10px; margin-bottom:14px; border:1px solid var(--card-border);">
+              <span style="font-size:12px; color:var(--text-muted); display:block;">Enlace directo para tu celular:</span>
+              <span style="font-size:14px; font-weight:700; color:var(--neon-cyan); word-break:break-all;">${mobileUrl}</span>
+            </div>
+
+            <div style="margin-bottom:18px;">
               <span style="font-size:13px; color:var(--text-muted); display:block;">Código de Sala:</span>
               <span class="room-code-display" style="font-size:36px;">${state.roomCode}</span>
             </div>
             <div style="display:flex; gap:10px;">
-              <button class="btn btn-glass" style="flex:1;" onclick="window.ruletaActions.copyRoomLink('${qrTargetUrl}')">
+              <button class="btn btn-glass" style="flex:1;" onclick="window.ruletaActions.copyRoomLink('${mobileUrl}')">
                 🔗 Copiar Enlace
               </button>
               <button class="btn btn-primary" style="flex:1;" onclick="window.ruletaActions.toggleQRModal()">
@@ -2248,7 +2338,9 @@
     });
 
     // --- URL Query Parameter Auto-Join Detection (for QR Scans) ---
-    function checkUrlAutoJoin() {
+    async function checkUrlAutoJoin() {
+      await fetchServerInfo();
+
       const urlParams = new URLSearchParams(window.location.search);
       const roomParam = urlParams.get('room');
       const modeParam = urlParams.get('mode');
@@ -2265,11 +2357,11 @@
           setTimeout(() => state.sync.send('STATE_SYNC_REQUEST'), 400);
         }
       }
+      triggerRender();
     }
 
     // Initialize App
     checkUrlAutoJoin();
-    triggerRender();
 
   })();
   </script>

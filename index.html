@@ -1179,7 +1179,7 @@
       }
 
       connectNativeWS() {
-        // Connect to native Node.js WebSocket server if available
+        // Connect to native Node.js WebSocket server if available locally
         let wsHost = window.location.host;
         if (state.serverUrl && state.serverUrl.startsWith('http')) {
           try {
@@ -1187,7 +1187,16 @@
           } catch (e) {}
         }
 
-        if (!wsHost || wsHost === '' || window.location.protocol === 'file:') {
+        const isLocalHost = wsHost && (
+          wsHost.includes('localhost') || 
+          wsHost.includes('127.0.0.1') || 
+          /^192\.168\./.test(wsHost) || 
+          /^10\./.test(wsHost) || 
+          /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(wsHost) ||
+          wsHost.includes(':3000')
+        );
+
+        if (!isLocalHost || !wsHost || wsHost === '' || window.location.protocol === 'file:') {
           this.connectCloudMQTT();
           return;
         }
@@ -1293,12 +1302,34 @@
       }
     }
 
+    // Helper to calculate exact base URL (preserves repository pathname on GitHub Pages or custom hosting)
+    function getCleanBaseUrl() {
+      if (typeof window === 'undefined' || !window.location) {
+        return 'http://localhost:3000/';
+      }
+      if (window.location.protocol === 'file:') {
+        return `http://${state.localIp || 'localhost'}:3000/`;
+      }
+      let cleanUrl = window.location.href.split('?')[0].split('#')[0];
+      if (!cleanUrl.endsWith('/') && !/\.[a-zA-Z0-9]+$/.test(cleanUrl)) {
+        cleanUrl += '/';
+      }
+      return cleanUrl;
+    }
+
+    function getMobileUrl(roomCode) {
+      const room = roomCode || state.roomCode || '';
+      const base = state.serverUrl || getCleanBaseUrl();
+      const sep = base.includes('?') ? '&' : (base.endsWith('/') || base.endsWith('.html') ? '?' : '/?');
+      return `${base}${sep}room=${room}&mode=mobile`;
+    }
+
     // --- Global Application State ---
     const state = {
       view: 'select', // 'select' | 'host' | 'mobile'
       mobileTab: 'remote', // 'remote' | 'participants'
       roomCode: '',
-      serverUrl: window.location.origin,
+      serverUrl: getCleanBaseUrl(),
       localIp: '192.168.1.36',
       participants: [
         { id: '1', name: 'Ana García' },
@@ -1326,11 +1357,14 @@
           const data = await res.json();
           if (data.url) state.serverUrl = data.url;
           if (data.localIp) state.localIp = data.localIp;
+          return;
         }
-      } catch (e) {
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-          state.serverUrl = `http://${state.localIp}:3000`;
-        }
+      } catch (e) {}
+
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        state.serverUrl = `http://${state.localIp || 'localhost'}:3000`;
+      } else {
+        state.serverUrl = getCleanBaseUrl();
       }
     }
 
@@ -1860,7 +1894,7 @@
     }
 
     function renderHostScreen() {
-      const mobileUrl = `${state.serverUrl}?room=${state.roomCode}&mode=mobile`;
+      const mobileUrl = getMobileUrl(state.roomCode);
       const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(mobileUrl)}`;
 
       return `
@@ -2138,7 +2172,7 @@
 
     function renderQRModal() {
       if (!state.qrModalOpen) return '';
-      const mobileUrl = `${state.serverUrl}?room=${state.roomCode}&mode=mobile`;
+      const mobileUrl = getMobileUrl(state.roomCode);
       const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(mobileUrl)}`;
 
       return `

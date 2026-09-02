@@ -234,6 +234,12 @@
       box-shadow: var(--glow-cyan);
       transform: translateY(-2px);
     }
+    .icon-btn.active-stage {
+      background: rgba(0, 240, 255, 0.25);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: var(--glow-cyan);
+    }
 
     /* Buttons */
     .btn {
@@ -406,6 +412,40 @@
       grid-template-columns: 1.15fr 1fr;
       gap: 26px;
       align-items: start;
+      transition: all 0.3s ease;
+    }
+    .host-stage.expanded {
+      grid-template-columns: 1fr;
+      max-width: 960px;
+      margin: 0 auto;
+      justify-items: center;
+    }
+    .host-stage.expanded .panels-column {
+      display: none !important;
+    }
+    .host-stage.expanded .wheel-outer-ring {
+      width: min(92vw, 68vh, 620px);
+      padding: 24px;
+      box-shadow:
+        0 0 0 8px rgba(255, 255, 255, 0.12),
+        0 0 70px rgba(138, 43, 226, 0.7),
+        0 0 120px rgba(0, 240, 255, 0.3),
+        inset 0 0 45px rgba(0, 0, 0, 0.9);
+      margin-bottom: 20px;
+    }
+    .host-stage.expanded .wheel-center-hub {
+      width: 96px;
+      height: 96px;
+      font-size: 38px;
+    }
+    .host-stage.expanded .wheel-pointer {
+      width: 48px;
+      height: 64px;
+      top: -10px;
+    }
+    .host-stage.expanded .spin-grand-btn {
+      font-size: 36px;
+      padding: 16px 64px;
     }
     @media (max-width: 960px) {
       .host-stage {
@@ -837,6 +877,22 @@
       font-size: 28px;
       color: var(--neon-cyan);
       letter-spacing: 0.12em;
+    }
+    .qr-card-hidden-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: rgba(24, 18, 44, 0.65);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      font-size: 13.5px;
+      transition: all 0.2s ease;
+    }
+    .qr-card-hidden-bar:hover {
+      border-color: var(--neon-cyan);
+      background: rgba(24, 18, 44, 0.85);
     }
 
     /* MOBILE / REMOTE CONTROL VIEW */
@@ -1458,6 +1514,8 @@
       winnerModal: null,
       batchModalOpen: false,
       qrModalOpen: false,
+      showQRCard: true,
+      expandedStage: false,
       sync: null,
       angle: 0 // Current rotation in radians
     };
@@ -1736,14 +1794,16 @@
         ctx.stroke();
 
         // Sector Pin/Peg on Outer Rim
-        const pinX = Math.cos(startA) * (radius - 5);
-        const pinY = Math.sin(startA) * (radius - 5);
+        const pinRadius = size > 480 ? 5 : 3.5;
+        const pinInset = size > 480 ? 8 : 5;
+        const pinX = Math.cos(startA) * (radius - pinInset);
+        const pinY = Math.sin(startA) * (radius - pinInset);
         ctx.beginPath();
-        ctx.arc(pinX, pinY, 3.5, 0, Math.PI * 2);
+        ctx.arc(pinX, pinY, pinRadius, 0, Math.PI * 2);
         ctx.fillStyle = '#FFE600';
         ctx.fill();
         ctx.strokeStyle = '#332600';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = size > 480 ? 1.5 : 1;
         ctx.stroke();
 
         // Text Label Along the Sector Spoke
@@ -1754,18 +1814,20 @@
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#FFFFFF';
         ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-        ctx.shadowBlur = 4;
+        ctx.shadowBlur = size > 480 ? 6 : 4;
         ctx.shadowOffsetX = 1;
         ctx.shadowOffsetY = 1;
 
-        const fontSize = n > 24 ? 11 : n > 14 ? 13 : n > 8 ? 15 : 17;
+        const fontSize = size > 480
+          ? (n > 24 ? 14 : n > 14 ? 18 : n > 8 ? 22 : 26)
+          : (n > 24 ? 11 : n > 14 ? 13 : n > 8 ? 15 : 17);
         ctx.font = `800 ${fontSize}px "Outfit", sans-serif`;
 
         let label = participants[i].name;
-        const maxLen = n > 20 ? 10 : 16;
+        const maxLen = size > 480 ? (n > 20 ? 14 : 22) : (n > 20 ? 10 : 16);
         if (label.length > maxLen) label = label.slice(0, maxLen - 1) + '…';
 
-        ctx.fillText(label, radius - 20, 0);
+        ctx.fillText(label, radius - (size > 480 ? 30 : 20), 0);
         ctx.restore();
       }
 
@@ -1987,11 +2049,11 @@
           
           <div class="header-actions">
             ${state.roomCode ? `
-              <div class="sync-status ${isConnected ? '' : 'offline'}" title="${isConnected ? 'Sincronizado vía WebSocket' : 'Conectando sincronización...'}">
+              <div class="sync-status ${isConnected ? '' : 'offline'}" title="${isConnected ? 'Sincronizado vía WebRTC' : 'Conectando sincronización...'}">
                 <span class="status-dot"></span>
                 <span>${isConnected ? 'Sincronizado' : 'Conectando'}</span>
               </div>
-              <button class="room-badge" onclick="window.ruletaActions.toggleQRModal()">
+              <button class="room-badge" onclick="window.ruletaActions.toggleQRModal()" title="Abrir código QR para celulares">
                 <span>Sala: <strong>${state.roomCode}</strong></span>
                 <span>📱</span>
               </button>
@@ -2002,8 +2064,8 @@
             </button>
 
             ${isHost ? `
-              <button class="icon-btn" onclick="window.ruletaActions.toggleFullscreen()" title="Pantalla Completa">
-                ⛶
+              <button class="icon-btn ${state.expandedStage ? 'active-stage' : ''}" onclick="window.ruletaActions.toggleExpandStage()" title="${state.expandedStage ? 'Restaurar vista con paneles' : 'Modo Ruleta Gigante / Pantalla Completa'}">
+                ${state.expandedStage ? '🗗' : '⛶'}
               </button>
             ` : ''}
           </div>
@@ -2055,7 +2117,7 @@
       return `
         ${renderHeader()}
 
-        <div class="host-stage">
+        <div class="host-stage ${state.expandedStage ? 'expanded' : ''}">
           <!-- Left Column: Big Stage Wheel -->
           <div class="wheel-stage-container">
             <div class="wheel-outer-ring">
@@ -2094,6 +2156,12 @@
               ${state.spinning ? '¡GIRANDO...!' : '¡GIRAR RULETA!'}
             </button>
             
+            <div style="display:flex; gap:10px; align-items:center; justify-content:center; width:100%; max-width:380px; margin-top:10px;">
+              <button class="btn btn-glass" style="font-size:13px; padding:7px 16px; border-radius:var(--radius-full); width:100%;" onclick="window.ruletaActions.toggleExpandStage()">
+                ${state.expandedStage ? '🗗 Restaurar Paneles' : '⛶ Expandir Ruleta (Pantalla Completa)'}
+              </button>
+            </div>
+
             ${state.participants.length < 2 ? `
               <p style="color:var(--text-muted); font-size:13px; margin-top:10px; text-align:center;">
                 Agrega al menos 2 participantes para comenzar el sorteo.
@@ -2104,23 +2172,45 @@
           <!-- Right Column: Control Panels & Participant Management -->
           <div class="panels-column">
             
-            <!-- Quick Mobile Connect Card -->
-            <div class="glass-card qr-card">
-              <div class="qr-image-wrap" onclick="window.ruletaActions.toggleQRModal()" title="Clic para ampliar QR">
-                <img src="${qrApiUrl}" alt="QR Sala ${state.roomCode}" />
-              </div>
-              <div class="qr-info" style="flex:1;">
-                <h4>📱 Sincronizar Celular</h4>
-                <p>Escanea el QR o abre en tu celular:</p>
-                <div class="qr-link-badge" onclick="window.ruletaActions.copyRoomLink('${mobileUrl}')" title="Clic para copiar enlace">
-                  ${mobileUrl}
+            <!-- Quick Mobile Connect Card / Hidden Toggle -->
+            ${state.showQRCard ? `
+              <div class="glass-card qr-card" style="position:relative;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:10px;">
+                  <span style="font-size:11.5px; font-weight:700; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:0.08em;">
+                    📱 Conexión de Celular
+                  </span>
+                  <button class="btn btn-glass" style="padding:4px 10px; font-size:11px; border-radius:6px;" onclick="window.ruletaActions.toggleQRCard()" title="Ocultar código QR del público">
+                    👁️ Ocultar QR
+                  </button>
                 </div>
-                <div style="display:flex; align-items:baseline; gap:8px; margin-top:6px;">
-                  <span style="font-size:12px; color:var(--text-muted);">Código de Sala:</span>
-                  <span class="room-code-display">${state.roomCode}</span>
+                <div style="display:flex; gap:14px; align-items:center; width:100%;">
+                  <div class="qr-image-wrap" onclick="window.ruletaActions.toggleQRModal()" title="Clic para ampliar QR">
+                    <img src="${qrApiUrl}" alt="QR Sala ${state.roomCode}" />
+                  </div>
+                  <div class="qr-info" style="flex:1;">
+                    <h4>📱 Sincronizar Celular</h4>
+                    <p>Escanea para anotar nombres o controlar el giro:</p>
+                    <div class="qr-link-badge" onclick="window.ruletaActions.copyRoomLink('${mobileUrl}')" title="Clic para copiar enlace">
+                      ${mobileUrl}
+                    </div>
+                    <div style="display:flex; align-items:baseline; gap:8px; margin-top:6px;">
+                      <span style="font-size:12px; color:var(--text-muted);">Código de Sala:</span>
+                      <span class="room-code-display">${state.roomCode}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            ` : `
+              <div class="qr-card-hidden-bar">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:16px;">🔒</span>
+                  <span><strong>Código QR Oculto</strong> (Protegido del público)</span>
+                </div>
+                <button class="btn btn-glass" style="padding:6px 14px; font-size:12px;" onclick="window.ruletaActions.toggleQRCard()">
+                  👁️ Mostrar QR
+                </button>
+              </div>
+            `}
 
             <!-- Participants Panel -->
             <div class="glass-card">
@@ -2436,6 +2526,33 @@
         }
       },
 
+      toggleQRCard: () => {
+        state.showQRCard = !state.showQRCard;
+        audio.playClick();
+        triggerRender();
+        if (state.view === 'host') {
+          setTimeout(drawWheel, 60);
+        }
+      },
+
+      toggleExpandStage: () => {
+        state.expandedStage = !state.expandedStage;
+        if (state.expandedStage) {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          }
+        } else {
+          if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+          }
+        }
+        audio.playClick();
+        triggerRender();
+        setTimeout(() => {
+          drawWheel();
+        }, 80);
+      },
+
       toggleQRModal: () => {
         state.qrModalOpen = !state.qrModalOpen;
         audio.playClick();
@@ -2528,10 +2645,20 @@
       }
     };
 
-    // --- Window Resize Listener for Canvas ---
+    // --- Window Resize and Fullscreen Listeners for Canvas ---
     window.addEventListener('resize', () => {
       if (state.view === 'host') {
         drawWheel();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && state.expandedStage) {
+        state.expandedStage = false;
+        triggerRender();
+      }
+      if (state.view === 'host') {
+        setTimeout(drawWheel, 100);
       }
     });
 

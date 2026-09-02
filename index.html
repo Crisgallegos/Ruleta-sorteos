@@ -14,8 +14,8 @@
   <!-- Canvas Confetti CDN -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   
-  <!-- MQTT.js for Fallback Cloud Sync -->
-  <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+  <!-- PeerJS for Real-Time WebRTC P2P Sync (PC & Mobile) -->
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <style>
     :root {
@@ -1150,19 +1150,24 @@
 
     const audio = new AudioEngine();
 
-    // --- Robust Multi-Layer Synchronization Manager (Native WebSocket + Cloud MQTT + BroadcastChannel) ---
+    // --- Robust Multi-Layer Synchronization Manager (PeerJS WebRTC + Native WebSocket + BroadcastChannel) ---
     class SyncManager {
-      constructor(roomCode, onMessageCallback) {
-        this.roomCode = roomCode;
+      constructor(roomCode, role, onMessageCallback) {
+        this.roomCode = String(roomCode || '').trim();
+        this.role = role || 'host'; // 'host' | 'mobile'
         this.onMessage = onMessageCallback;
-        this.ws = null;
-        this.mqttClient = null;
         this.connected = false;
         this.clientId = 'client_' + Math.random().toString(36).substr(2, 8);
+        
+        this.ws = null;
+        this.peer = null;
+        this.peerConnections = new Map(); // connId -> DataConnection
+        this.hostConn = null;
         this.broadcastChannel = null;
+        this.destroyed = false;
 
         this.initBroadcast();
-        this.connectNativeWS();
+        this.initConnection();
       }
 
       initBroadcast() {
@@ -1178,8 +1183,7 @@
         }
       }
 
-      connectNativeWS() {
-        // Connect to native Node.js WebSocket server if available locally
+      initConnection() {
         let wsHost = window.location.host;
         if (state.serverUrl && state.serverUrl.startsWith('http')) {
           try {
@@ -1196,11 +1200,14 @@
           wsHost.includes(':3000')
         );
 
-        if (!isLocalHost || !wsHost || wsHost === '' || window.location.protocol === 'file:') {
-          this.connectCloudMQTT();
-          return;
+        if (isLocalHost && window.location.protocol !== 'file:') {
+          this.connectNativeWS(wsHost);
+        } else {
+          this.connectPeerJS();
         }
+      }
 
+      connectNativeWS(wsHost) {
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${wsProtocol}//${wsHost}`;
 
@@ -1208,6 +1215,7 @@
           this.ws = new WebSocket(wsUrl);
 
           this.ws.onopen = () => {
+            if (this.destroyed) return;
             this.connected = true;
             this.ws.send(JSON.stringify({ action: 'JOIN_ROOM', room: this.roomCode, clientId: this.clientId }));
             triggerRender();
@@ -1225,51 +1233,144 @@
           this.ws.onclose = () => {
             this.connected = false;
             triggerRender();
-            // Fallback to Cloud MQTT if local WS fails
-            this.connectCloudMQTT();
+            if (!this.destroyed && window.location.hostname !== 'localhost') {
+              this.connectPeerJS();
+            }
           };
 
           this.ws.onerror = () => {
             this.connected = false;
-            this.connectCloudMQTT();
+            if (!this.destroyed && window.location.hostname !== 'localhost') {
+              this.connectPeerJS();
+            }
           };
         } catch (e) {
-          this.connectCloudMQTT();
+          this.connectPeerJS();
         }
       }
 
-      connectCloudMQTT() {
-        if (this.mqttClient || typeof mqtt === 'undefined') return;
+      connectPeerJS() {
+        if (this.peer || typeof Peer === 'undefined' || this.destroyed) return;
+
+        const peerConfig = {
+          debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
+        };
+
+        const hostPeerId = 'ruleta-sorteos-' + this.roomCode;
 
         try {
-          const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
-          this.mqttClient = mqtt.connect(brokerUrl, {
-            clientId: this.clientId,
-            clean: true,
-            connectTimeout: 5000,
-            reconnectPeriod: 4000
-          });
+          if (this.role === 'host') {
+            // Host listens on fixed peer ID
+            this.peer = new Peer(hostPeerId, peerConfig);
 
-          this.mqttClient.on('connect', () => {
-            this.connected = true;
-            this.mqttClient.subscribe(`ruleta_app/${this.roomCode}/events`);
-            triggerRender();
-          });
-
-          this.mqttClient.on('message', (topic, payload) => {
-            try {
-              const msg = JSON.parse(payload.toString());
-              if (msg && msg.senderId !== this.clientId) {
-                if (this.onMessage) this.onMessage(msg);
-              }
-            } catch (err) {}
-          });
-
-          this.mqttClient.on('close', () => {
-            if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-              this.connected = false;
+            this.peer.on('open', (id) => {
+              if (this.destroyed) return;
+              this.connected = true;
               triggerRender();
+            });
+
+            this.peer.on('connection', (conn) => {
+              const connId = conn.peer || conn.connectionId || Math.random().toString();
+              this.peerConnections.set(connId, conn);
+
+              conn.on('open', () => {
+                this.connected = true;
+                triggerRender();
+                // Send current room state to newly connected mobile
+                conn.send({
+                  action: 'STATE_SYNC_RESPONSE',
+                  data: {
+                    participants: state.participants,
+                    winners: state.winners,
+                    removeWinnerAfterSpin: state.removeWinnerAfterSpin,
+                    spinning: state.spinning
+                  },
+                  senderId: this.clientId,
+                  room: this.roomCode
+                });
+                showToast('📱 Celular conectado a la sala');
+              });
+
+              conn.on('data', (data) => {
+                if (this.onMessage && data && data.senderId !== this.clientId) {
+                  this.onMessage(data);
+                }
+              });
+
+              conn.on('close', () => {
+                this.peerConnections.delete(connId);
+                triggerRender();
+              });
+
+              conn.on('error', () => {
+                this.peerConnections.delete(connId);
+              });
+            });
+
+            this.peer.on('error', (err) => {
+              if (err.type === 'unavailable-id') {
+                this.connected = true;
+                triggerRender();
+              }
+            });
+
+          } else {
+            // Mobile client connects to host peer
+            this.peer = new Peer(null, peerConfig);
+
+            this.peer.on('open', (id) => {
+              if (this.destroyed) return;
+              this.connectToHost(hostPeerId);
+            });
+
+            this.peer.on('error', (err) => {
+              setTimeout(() => {
+                if (!this.connected && !this.destroyed) this.connectToHost(hostPeerId);
+              }, 2000);
+            });
+          }
+        } catch (e) {
+          console.error('PeerJS init error:', e);
+        }
+      }
+
+      connectToHost(hostPeerId) {
+        if (!this.peer || this.destroyed) return;
+        
+        try {
+          this.hostConn = this.peer.connect(hostPeerId, { reliable: true });
+
+          this.hostConn.on('open', () => {
+            if (this.destroyed) return;
+            this.connected = true;
+            triggerRender();
+            showToast('✓ Conectado a la ruleta en PC');
+            this.send('STATE_SYNC_REQUEST');
+          });
+
+          this.hostConn.on('data', (data) => {
+            if (this.onMessage && data && data.senderId !== this.clientId) {
+              this.onMessage(data);
             }
+          });
+
+          this.hostConn.on('close', () => {
+            this.connected = false;
+            triggerRender();
+            setTimeout(() => {
+              if (!this.connected && !this.destroyed) this.connectToHost(hostPeerId);
+            }, 2500);
+          });
+
+          this.hostConn.on('error', () => {
+            this.connected = false;
+            triggerRender();
           });
         } catch (e) {}
       }
@@ -1288,17 +1389,29 @@
           try { this.broadcastChannel.postMessage(payload); } catch (e) {}
         }
 
-        // 2. Native WebSocket (local Wi-Fi mobile sync)
+        // 2. Native WebSocket (local Wi-Fi server)
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
           try { this.ws.send(JSON.stringify(payload)); } catch (e) {}
         }
 
-        // 3. Cloud MQTT (internet fallback)
-        if (this.mqttClient && this.mqttClient.connected) {
-          try {
-            this.mqttClient.publish(`ruleta_app/${this.roomCode}/events`, JSON.stringify(payload));
-          } catch (e) {}
+        // 3. PeerJS WebRTC DataChannel
+        if (this.role === 'host') {
+          for (const conn of this.peerConnections.values()) {
+            if (conn && conn.open) {
+              try { conn.send(payload); } catch (e) {}
+            }
+          }
+        } else if (this.hostConn && this.hostConn.open) {
+          try { this.hostConn.send(payload); } catch (e) {}
         }
+      }
+
+      destroy() {
+        this.destroyed = true;
+        try { if (this.ws) this.ws.close(); } catch (e) {}
+        try { if (this.hostConn) this.hostConn.close(); } catch (e) {}
+        try { if (this.peer) this.peer.destroy(); } catch (e) {}
+        try { if (this.broadcastChannel) this.broadcastChannel.close(); } catch (e) {}
       }
     }
 
@@ -1349,23 +1462,27 @@
       angle: 0 // Current rotation in radians
     };
 
-    // Auto-detect server network IP
+    // Auto-detect server network IP with fast timeout
     async function fetchServerInfo() {
-      try {
-        const res = await fetch('/api/info');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.url) state.serverUrl = data.url;
-          if (data.localIp) state.localIp = data.localIp;
+      if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || /^192\.168\./.test(window.location.hostname)) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 600);
+            const res = await fetch('/api/info', { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.url) state.serverUrl = data.url;
+              if (data.localIp) state.localIp = data.localIp;
+              return;
+            }
+          } catch (e) {}
+          state.serverUrl = `http://${state.localIp || 'localhost'}:3000`;
           return;
         }
-      } catch (e) {}
-
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        state.serverUrl = `http://${state.localIp || 'localhost'}:3000`;
-      } else {
-        state.serverUrl = getCleanBaseUrl();
       }
+      state.serverUrl = getCleanBaseUrl();
     }
 
     function showToast(msg) {
@@ -1380,9 +1497,11 @@
       return String(Math.floor(1000 + Math.random() * 9000));
     }
 
-    function initSync(code) {
-      if (state.sync) return;
-      state.sync = new SyncManager(code, handleRemoteMessage);
+    function initSync(code, role) {
+      if (state.sync) {
+        state.sync.destroy();
+      }
+      state.sync = new SyncManager(code, role || state.view, handleRemoteMessage);
     }
 
     function handleRemoteMessage(msg) {
@@ -1397,8 +1516,17 @@
                 id: Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                 name: clean
               });
-              showToast(`📱 + "${clean}" agregado desde celular`);
+              showToast(`📱 + "${clean}" agregado a la ruleta`);
+              audio.playClick();
               triggerRender();
+              if (state.view === 'host' && state.sync) {
+                state.sync.send('STATE_SYNC_RESPONSE', {
+                  participants: state.participants,
+                  winners: state.winners,
+                  removeWinnerAfterSpin: state.removeWinnerAfterSpin,
+                  spinning: state.spinning
+                });
+              }
             }
           }
           break;
@@ -1418,7 +1546,16 @@
             });
             if (count > 0) {
               showToast(`📱 + ${count} participantes agregados`);
+              audio.playClick();
               triggerRender();
+              if (state.view === 'host' && state.sync) {
+                state.sync.send('STATE_SYNC_RESPONSE', {
+                  participants: state.participants,
+                  winners: state.winners,
+                  removeWinnerAfterSpin: state.removeWinnerAfterSpin,
+                  spinning: state.spinning
+                });
+              }
             }
           }
           break;
@@ -1426,14 +1563,31 @@
         case 'REMOVE_PARTICIPANT':
           if (msg.data && msg.data.id) {
             state.participants = state.participants.filter(p => p.id !== msg.data.id);
+            audio.playClick();
             triggerRender();
+            if (state.view === 'host' && state.sync) {
+              state.sync.send('STATE_SYNC_RESPONSE', {
+                participants: state.participants,
+                winners: state.winners,
+                removeWinnerAfterSpin: state.removeWinnerAfterSpin,
+                spinning: state.spinning
+              });
+            }
           }
           break;
 
         case 'TRIGGER_SPIN':
-          if (!state.spinning && state.participants.length >= 2) {
-            executeSpin(msg.data.targetWinnerIndex, msg.data.extraRotations);
+          if (state.view === 'host') {
+            if (!state.spinning && state.participants.length >= 2) {
+              executeSpin(msg.data?.targetWinnerIndex, msg.data?.extraRotations);
+            }
           }
+          break;
+
+        case 'SPIN_STARTED':
+          state.spinning = true;
+          audio.init();
+          triggerRender();
           break;
 
         case 'STATE_SYNC_REQUEST':
@@ -1463,7 +1617,9 @@
             if (!state.winners.some(w => w.name === msg.data.winner.name && w.time === msg.data.winner.time)) {
               state.winners.unshift(msg.data.winner);
             }
-            if (state.removeWinnerAfterSpin) {
+            if (Array.isArray(msg.data.participants)) {
+              state.participants = msg.data.participants;
+            } else if (state.removeWinnerAfterSpin) {
               state.participants = state.participants.filter(p => p.name !== msg.data.winner.name);
             }
             state.spinning = false;
@@ -1661,10 +1817,7 @@
       const startTime = performance.now();
 
       if (state.sync) {
-        state.sync.send('TRIGGER_SPIN', {
-          targetWinnerIndex: winnerIndex,
-          extraRotations: extraRotations
-        });
+        state.sync.send('SPIN_STARTED', {});
       }
 
       let lastPegIndex = -1;
@@ -1720,7 +1873,9 @@
 
           if (state.sync) {
             state.sync.send('WINNER_ANNOUNCED', {
-              winner: winnerPayload
+              winner: winnerPayload,
+              participants: state.participants,
+              winners: state.winners
             });
           }
 
@@ -2242,7 +2397,7 @@
       startHost: () => {
         if (!state.roomCode) state.roomCode = generateRoomCode();
         state.view = 'host';
-        initSync(state.roomCode);
+        initSync(state.roomCode, 'host');
         audio.playClick();
         triggerRender();
       },
@@ -2256,8 +2411,7 @@
         if (room && room.trim()) {
           state.roomCode = room.trim();
           state.view = 'mobile';
-          initSync(state.roomCode);
-          if (state.sync) state.sync.send('STATE_SYNC_REQUEST');
+          initSync(state.roomCode, 'mobile');
           audio.playClick();
           triggerRender();
         }
@@ -2355,7 +2509,17 @@
       },
 
       spin: () => {
-        executeSpin();
+        if (state.view === 'mobile') {
+          if (state.spinning || state.participants.length < 2) return;
+          state.spinning = true;
+          audio.playClick();
+          triggerRender();
+          if (state.sync) {
+            state.sync.send('TRIGGER_SPIN', {});
+          }
+        } else {
+          executeSpin();
+        }
       },
 
       closeWinnerModal: () => {
@@ -2381,15 +2545,9 @@
 
       if (roomParam) {
         state.roomCode = roomParam.trim();
-        initSync(state.roomCode);
-        if (modeParam === 'mobile' || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) {
-          state.view = 'mobile';
-        } else {
-          state.view = 'host';
-        }
-        if (state.sync) {
-          setTimeout(() => state.sync.send('STATE_SYNC_REQUEST'), 400);
-        }
+        const role = (modeParam === 'mobile' || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) ? 'mobile' : 'host';
+        state.view = role;
+        initSync(state.roomCode, role);
       }
       triggerRender();
     }

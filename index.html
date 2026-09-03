@@ -2,71 +2,107 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ruleta de Sorteos Pro | Sincronizada PC & Celular</title>
-  <meta name="description" content="Ruleta de sorteos interactiva, ultra colorida y sincronizada en tiempo real entre computador y teléfono móvil.">
-  
-  <!-- Google Fonts -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Ruleta de Sorteos Pro | Sincronizada PC & Móvil</title>
+  <meta name="description" content="Ruleta de sorteos interactiva, ultra moderna, con física realista y sincronización en tiempo real entre pantalla principal y celulares.">
+  <meta name="theme-color" content="#070814">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans & Bebas Neue -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
+
   <!-- Canvas Confetti CDN -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  
+
   <!-- PeerJS for Real-Time WebRTC P2P Sync (PC & Mobile) -->
   <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <style>
+    /* ==========================================================================
+       DESIGN TOKENS & CYBER-GLASSMORPHIC SYSTEM
+       ========================================================================== */
     :root {
-      --bg-dark: #080614;
-      --bg-gradient: radial-gradient(circle at 50% 0%, #1e113a 0%, #0d091e 50%, #05040d 100%);
-      --card-bg: rgba(24, 18, 44, 0.78);
-      --card-border: rgba(255, 255, 255, 0.12);
+      --bg-dark: #070814;
+      --bg-gradient: radial-gradient(circle at 50% 0%, #17112e 0%, #0a0817 55%, #04030a 100%);
+      
+      --card-bg: rgba(18, 14, 34, 0.76);
+      --card-bg-elevated: rgba(28, 22, 52, 0.88);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --card-border-hover: rgba(0, 240, 255, 0.35);
       
       /* Vibrant Neon Color Palette */
-      --neon-pink: #FF007F;
+      --neon-pink: #FF007A;
       --neon-purple: #8A2BE2;
       --neon-cyan: #00F0FF;
-      --neon-yellow: #FFE600;
-      --neon-green: #00FF88;
+      --neon-yellow: #FFD000;
+      --neon-green: #00F59B;
       --neon-orange: #FF5400;
       --neon-red: #FF2A55;
+      --neon-blue: #2979FF;
       
       --text-main: #FFFFFF;
-      --text-muted: rgba(255, 255, 255, 0.65);
-      --text-dark: #0C0A1A;
+      --text-muted: rgba(255, 255, 255, 0.68);
+      --text-dim: rgba(255, 255, 255, 0.42);
+      --text-dark: #070814;
       
-      --glow-pink: 0 0 25px rgba(255, 0, 127, 0.55);
-      --glow-cyan: 0 0 25px rgba(0, 240, 255, 0.55);
-      --glow-yellow: 0 0 25px rgba(255, 230, 0, 0.55);
+      --glow-pink: 0 0 28px rgba(255, 0, 122, 0.5);
+      --glow-cyan: 0 0 28px rgba(0, 240, 255, 0.5);
+      --glow-yellow: 0 0 28px rgba(255, 208, 0, 0.5);
+      --glow-green: 0 0 28px rgba(0, 245, 155, 0.5);
       
       --radius-sm: 8px;
       --radius-md: 14px;
-      --radius-lg: 22px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
       --radius-full: 9999px;
+      
+      --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-impact: 'Bebas Neue', 'Outfit', sans-serif;
+      
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
     }
 
-    * {
+    /* Base Reset */
+    *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
     }
 
-    body {
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      min-height: 100dvh;
       background: var(--bg-dark);
       background-image: var(--bg-gradient);
       background-attachment: fixed;
       color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.5;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Ambient animated background glowing blobs */
+    body {
+      display: flex;
+      flex-direction: column;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+      padding-left: var(--safe-left);
+      padding-right: var(--safe-right);
+    }
+
+    /* Ambient animated background glowing orbs */
     .bg-lights {
       position: fixed;
       inset: 0;
@@ -77,77 +113,116 @@
     .bg-light-blob {
       position: absolute;
       border-radius: 50%;
-      filter: blur(90px);
-      opacity: 0.25;
-      animation: floatBlobs 18s ease-in-out infinite alternate;
+      filter: blur(100px);
+      opacity: 0.22;
+      animation: floatBlobs 20s ease-in-out infinite alternate;
+      will-change: transform;
     }
-    .blob-1 { width: 500px; height: 500px; background: var(--neon-purple); top: -10%; left: 10%; }
-    .blob-2 { width: 420px; height: 420px; background: var(--neon-cyan); bottom: -5%; right: 5%; animation-delay: -6s; }
-    .blob-3 { width: 350px; height: 350px; background: var(--neon-pink); top: 35%; left: 65%; animation-delay: -12s; }
+    .blob-1 { width: 480px; height: 480px; background: var(--neon-purple); top: -10%; left: 10%; }
+    .blob-2 { width: 420px; height: 420px; background: var(--neon-cyan); bottom: -5%; right: 5%; animation-delay: -7s; }
+    .blob-3 { width: 340px; height: 340px; background: var(--neon-pink); top: 40%; left: 60%; animation-delay: -14s; }
     @keyframes floatBlobs {
       0% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(40px, -30px) scale(1.1); }
-      100% { transform: translate(-30px, 40px) scale(0.95); }
+      50% { transform: translate(35px, -25px) scale(1.08); }
+      100% { transform: translate(-25px, 35px) scale(0.95); }
     }
 
+    /* Main Container */
     #app {
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 1200px;
+      max-width: 1220px;
       margin: 0 auto;
-      padding: 14px 18px 36px;
+      padding: 14px 18px 40px;
       flex: 1;
       display: flex;
       flex-direction: column;
     }
 
-    .font-bebas { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em; }
+    /* Typography Utilities */
+    .font-bebas { font-family: var(--font-impact); letter-spacing: 0.06em; }
+    .font-outfit { font-family: var(--font-display); }
+    
     .gradient-text {
-      background: linear-gradient(135deg, #FFE600 0%, #FF007F 50%, #00F0FF 100%);
+      background: linear-gradient(135deg, #FFD000 0%, #FF007A 50%, #00F0FF 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     .gradient-cyan {
-      background: linear-gradient(135deg, #00FF88 0%, #00F0FF 100%);
+      background: linear-gradient(135deg, #00F59B 0%, #00F0FF 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gradient-gold {
+      background: linear-gradient(135deg, #FFF066 0%, #FFB800 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    /* Top Navigation / Status Header */
+    /* SVG Icon System (Clean, Vector, Accessible) */
+    .svg-icon {
+      display: inline-block;
+      width: 1.25em;
+      height: 1.25em;
+      stroke-width: 1.8;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .svg-icon.fill-current {
+      fill: currentColor;
+    }
+
+    /* Top Navigation Header */
     .header-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 20px;
+      padding: 10px 18px;
       background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--card-border);
       border-radius: var(--radius-lg);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      gap: 12px;
     }
     .logo-group {
       display: flex;
       align-items: center;
       gap: 12px;
       cursor: pointer;
+      user-select: none;
     }
-    .logo-icon {
-      font-size: 30px;
-      filter: drop-shadow(0 0 10px rgba(255, 230, 0, 0.6));
-      animation: spinPulse 8s ease-in-out infinite;
+    .logo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255, 0, 122, 0.25), rgba(0, 240, 255, 0.25));
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--neon-yellow);
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.3);
+      transition: transform 0.25s ease;
     }
-    @keyframes spinPulse {
-      0% { transform: rotate(0deg) scale(1); }
-      50% { transform: rotate(180deg) scale(1.08); }
-      100% { transform: rotate(360deg) scale(1); }
+    .logo-group:hover .logo-badge {
+      transform: rotate(18deg) scale(1.05);
     }
     .logo-title {
-      font-size: 26px;
+      font-family: var(--font-display);
+      font-size: 22px;
       font-weight: 800;
-      line-height: 1;
+      line-height: 1.1;
       margin: 0;
     }
     .logo-subtitle {
@@ -155,12 +230,15 @@
       color: var(--text-muted);
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      font-weight: 600;
+      display: block;
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     /* Status Pill */
@@ -168,13 +246,14 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 14px;
-      background: rgba(0, 255, 136, 0.12);
-      border: 1px solid rgba(0, 255, 136, 0.35);
+      padding: 6px 12px;
+      background: rgba(0, 245, 155, 0.12);
+      border: 1px solid rgba(0, 245, 155, 0.35);
       border-radius: var(--radius-full);
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--neon-green);
+      min-height: 38px;
     }
     .sync-status.offline {
       background: rgba(255, 42, 85, 0.12);
@@ -187,11 +266,11 @@
       border-radius: 50%;
       background: currentColor;
       box-shadow: 0 0 8px currentColor;
-      animation: blinkDot 1.5s infinite ease-in-out;
+      animation: blinkDot 1.6s infinite ease-in-out;
     }
     @keyframes blinkDot {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
+      50% { opacity: 0.35; transform: scale(0.85); }
     }
 
     .room-badge {
@@ -199,54 +278,63 @@
       align-items: center;
       gap: 6px;
       padding: 6px 14px;
-      background: rgba(255, 230, 0, 0.14);
-      border: 1px solid rgba(255, 230, 0, 0.45);
+      background: rgba(255, 208, 0, 0.12);
+      border: 1px solid rgba(255, 208, 0, 0.4);
       border-radius: var(--radius-full);
       color: var(--neon-yellow);
       font-weight: 700;
       font-size: 13px;
       cursor: pointer;
+      min-height: 38px;
       transition: all 0.2s ease;
+      touch-action: manipulation;
     }
-    .room-badge:hover {
-      background: rgba(255, 230, 0, 0.25);
+    .room-badge:hover, .room-badge:active {
+      background: rgba(255, 208, 0, 0.22);
       box-shadow: var(--glow-yellow);
       transform: translateY(-1px);
     }
 
+    /* Icon Buttons (Touch Target >= 44x44px for accessibility) */
     .icon-btn {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.07);
       border: 1px solid var(--card-border);
       color: var(--text-main);
-      width: 38px;
-      height: 38px;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 16px;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      touch-action: manipulation;
     }
     .icon-btn:hover {
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.16);
       border-color: var(--neon-cyan);
       box-shadow: var(--glow-cyan);
       transform: translateY(-2px);
     }
+    .icon-btn:active {
+      transform: scale(0.94);
+    }
     .icon-btn.active-stage {
-      background: rgba(0, 240, 255, 0.25);
+      background: rgba(0, 240, 255, 0.2);
       border-color: var(--neon-cyan);
       color: var(--neon-cyan);
       box-shadow: var(--glow-cyan);
     }
 
-    /* Buttons */
+    /* General Buttons */
     .btn {
-      font-family: inherit;
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 15px;
-      padding: 12px 22px;
+      padding: 12px 20px;
+      min-height: 44px;
       border-radius: var(--radius-md);
       border: none;
       cursor: pointer;
@@ -254,20 +342,22 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
       text-decoration: none;
+      user-select: none;
+      touch-action: manipulation;
     }
     .btn:active {
-      transform: scale(0.96);
+      transform: scale(0.97);
     }
     .btn-primary {
-      background: linear-gradient(135deg, #FF007F 0%, #FF5400 100%);
+      background: linear-gradient(135deg, #FF007A 0%, #FF5400 100%);
       color: white;
       box-shadow: var(--glow-pink);
     }
     .btn-primary:hover {
-      filter: brightness(1.15);
-      box-shadow: 0 0 35px rgba(255, 0, 127, 0.8);
+      filter: brightness(1.12);
+      box-shadow: 0 0 35px rgba(255, 0, 122, 0.75);
       transform: translateY(-2px);
     }
     .btn-cyan {
@@ -276,11 +366,11 @@
       box-shadow: var(--glow-cyan);
     }
     .btn-cyan:hover {
-      filter: brightness(1.15);
+      filter: brightness(1.12);
       transform: translateY(-2px);
     }
     .btn-gold {
-      background: linear-gradient(135deg, #FFE600 0%, #FF9900 100%);
+      background: linear-gradient(135deg, #FFD000 0%, #FF9900 100%);
       color: var(--text-dark);
       box-shadow: var(--glow-yellow);
     }
@@ -295,56 +385,67 @@
     }
     .btn-glass:hover {
       background: rgba(255, 255, 255, 0.16);
-      border-color: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.25);
     }
     .btn-danger {
-      background: rgba(255, 42, 85, 0.15);
+      background: rgba(255, 42, 85, 0.12);
       border: 1px solid rgba(255, 42, 85, 0.35);
       color: var(--neon-red);
     }
     .btn-danger:hover {
-      background: rgba(255, 42, 85, 0.3);
+      background: rgba(255, 42, 85, 0.24);
+    }
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 13px;
+      min-height: 38px;
     }
 
     /* Role Selection Screen */
     .role-selection-wrapper {
-      max-width: 840px;
-      margin: 4vh auto;
+      max-width: 860px;
+      margin: 2vh auto 4vh;
       text-align: center;
+      width: 100%;
     }
     .hero-heading {
-      font-size: clamp(40px, 7vw, 70px);
-      line-height: 0.95;
+      font-size: clamp(34px, 7vw, 64px);
+      line-height: 0.96;
       margin-bottom: 12px;
+      font-weight: 800;
     }
     .hero-sub {
-      font-size: 17px;
+      font-size: clamp(15px, 2.5vw, 17px);
       color: var(--text-muted);
-      max-width: 600px;
-      margin: 0 auto 36px;
+      max-width: 620px;
+      margin: 0 auto 30px;
       line-height: 1.5;
     }
     .roles-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      margin-bottom: 30px;
+      gap: 22px;
+      margin-bottom: 24px;
     }
-    @media (max-width: 680px) {
-      .roles-grid { grid-template-columns: 1fr; }
+    @media (max-width: 720px) {
+      .roles-grid { grid-template-columns: 1fr; gap: 16px; }
+      .role-selection-wrapper { margin: 1vh auto 2vh; }
     }
     .role-card {
       background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 2px solid var(--card-border);
-      border-radius: var(--radius-lg);
-      padding: 34px 26px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-xl);
+      padding: 30px 24px;
       text-align: left;
       cursor: pointer;
       position: relative;
       overflow: hidden;
       transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      touch-action: manipulation;
     }
     .role-card::before {
       content: '';
@@ -358,31 +459,34 @@
       transition: opacity 0.3s ease;
     }
     .role-card:hover {
-      transform: translateY(-6px);
+      transform: translateY(-5px);
       border-color: var(--neon-cyan);
-      box-shadow: 0 15px 40px rgba(0, 240, 255, 0.25);
+      box-shadow: 0 16px 40px rgba(0, 240, 255, 0.22);
     }
     .role-card:hover::before {
       opacity: 1;
     }
     .role-card.host-card:hover {
       border-color: var(--neon-yellow);
-      box-shadow: 0 15px 40px rgba(255, 230, 0, 0.25);
+      box-shadow: 0 16px 40px rgba(255, 208, 0, 0.22);
     }
     .role-badge-icon {
-      width: 58px;
-      height: 58px;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.08);
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
-      margin-bottom: 20px;
+      color: var(--neon-cyan);
+      margin-bottom: 18px;
       border: 1px solid var(--card-border);
     }
+    .role-card.host-card .role-badge-icon {
+      color: var(--neon-yellow);
+    }
     .role-card h3 {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
       margin-bottom: 8px;
     }
@@ -390,7 +494,7 @@
       font-size: 14px;
       color: var(--text-muted);
       line-height: 1.5;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .role-features {
       list-style: none;
@@ -399,24 +503,43 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      margin-bottom: 22px;
+      flex: 1;
     }
-    .role-features li::before {
-      content: '✓ ';
+    .role-features li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .role-features li svg {
       color: var(--neon-green);
-      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .direct-play-banner {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      text-align: left;
     }
 
     /* HOST / MAIN STAGE VIEW */
     .host-stage {
       display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 26px;
+      grid-template-columns: 1.12fr 1fr;
+      gap: 24px;
       align-items: start;
       transition: all 0.3s ease;
     }
     .host-stage.expanded {
       grid-template-columns: 1fr;
-      max-width: 960px;
+      max-width: 900px;
       margin: 0 auto;
       justify-items: center;
     }
@@ -424,32 +547,99 @@
       display: none !important;
     }
     .host-stage.expanded .wheel-outer-ring {
-      width: min(92vw, 68vh, 620px);
-      padding: 24px;
+      width: min(90vw, 65vh, 580px);
+      padding: 22px;
       box-shadow:
         0 0 0 8px rgba(255, 255, 255, 0.12),
-        0 0 70px rgba(138, 43, 226, 0.7),
-        0 0 120px rgba(0, 240, 255, 0.3),
+        0 0 70px rgba(138, 43, 226, 0.65),
+        0 0 110px rgba(0, 240, 255, 0.3),
         inset 0 0 45px rgba(0, 0, 0, 0.9);
       margin-bottom: 20px;
     }
     .host-stage.expanded .wheel-center-hub {
-      width: 96px;
-      height: 96px;
-      font-size: 38px;
-    }
-    .host-stage.expanded .wheel-pointer {
-      width: 48px;
-      height: 64px;
-      top: -10px;
+      width: 92px;
+      height: 92px;
+      font-size: 34px;
     }
     .host-stage.expanded .spin-grand-btn {
-      font-size: 36px;
-      padding: 16px 64px;
+      font-size: 34px;
+      padding: 16px 60px;
     }
+
+    /* Mobile Segmented Control Bar (for Host Mode on mobile/tablets) */
+    .mobile-stage-tabs {
+      display: none;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      background: rgba(14, 10, 28, 0.85);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      margin-bottom: 16px;
+      width: 100%;
+    }
+    .mobile-tab-pill {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13.5px;
+      padding: 10px 8px;
+      min-height: 44px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+    .mobile-tab-pill.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--neon-cyan);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+    .mobile-tab-pill.active.pill-ruleta {
+      background: linear-gradient(135deg, rgba(255, 0, 122, 0.35), rgba(255, 84, 0, 0.35));
+      color: #FFF;
+    }
+
     @media (max-width: 960px) {
       .host-stage {
         grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .mobile-stage-tabs {
+        display: grid;
+      }
+      /* When mobile tabs are active, hide unselected panels */
+      .host-stage.tab-active-ruleta .panels-column {
+        display: none;
+      }
+      .host-stage.tab-active-ruleta .wheel-stage-container {
+        display: flex;
+      }
+      .host-stage.tab-active-participants .wheel-stage-container {
+        display: none;
+      }
+      .host-stage.tab-active-participants .panels-column {
+        display: flex;
+      }
+      .host-stage.tab-active-participants .winners-card,
+      .host-stage.tab-active-participants .qr-card-container {
+        display: none;
+      }
+      .host-stage.tab-active-winners .wheel-stage-container {
+        display: none;
+      }
+      .host-stage.tab-active-winners .panels-column {
+        display: flex;
+      }
+      .host-stage.tab-active-winners .participants-card,
+      .host-stage.tab-active-winners .quick-actions-bar {
+        display: none;
       }
     }
 
@@ -459,6 +649,7 @@
       flex-direction: column;
       align-items: center;
       position: relative;
+      width: 100%;
     }
 
     .wheel-outer-ring {
@@ -505,7 +696,7 @@
       box-shadow: 0 0 10px #00F0FF, 0 0 20px #00F0FF;
     }
     .led-bulb.dim {
-      opacity: 0.25;
+      opacity: 0.22;
       box-shadow: none;
     }
 
@@ -529,7 +720,7 @@
       display: block;
     }
     .wheel-pointer.tick {
-      transform: translateX(-50%) rotate(-20deg);
+      transform: translateX(-50%) rotate(-18deg);
     }
 
     /* Central Hub */
@@ -541,24 +732,27 @@
       width: 72px;
       height: 72px;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #FFFFFF 0%, #FFE600 45%, #CC9900 80%, #664400 100%);
+      background: radial-gradient(circle at 35% 35%, #FFFFFF 0%, #FFD000 45%, #CC9900 80%, #664400 100%);
       border: 4px solid #17112C;
       box-shadow: 
-        0 0 0 3px rgba(255, 230, 0, 0.7),
+        0 0 0 3px rgba(255, 208, 0, 0.75),
         0 8px 24px rgba(0, 0, 0, 0.7),
         inset 0 2px 4px rgba(255, 255, 255, 0.85);
       z-index: 15;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
-      color: #0C0A1A;
+      color: #070814;
       cursor: pointer;
       user-select: none;
       transition: transform 0.15s ease;
+      touch-action: manipulation;
     }
     .wheel-center-hub:hover {
       transform: translate(-50%, -50%) scale(1.08);
+    }
+    .wheel-center-hub:active {
+      transform: translate(-50%, -50%) scale(0.95);
     }
 
     /* High-DPI Canvas Wheel */
@@ -581,19 +775,26 @@
 
     /* Big Spin Trigger Button */
     .spin-grand-btn {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: var(--font-impact);
       font-size: 28px;
       letter-spacing: 0.08em;
       padding: 13px 46px;
+      min-height: 58px;
       border-radius: var(--radius-full);
-      background: linear-gradient(135deg, #FF007F 0%, #FF5400 50%, #FFE600 100%);
+      background: linear-gradient(135deg, #FF007A 0%, #FF5400 50%, #FFD000 100%);
       color: #FFFFFF;
       border: none;
       cursor: pointer;
-      box-shadow: 0 0 30px rgba(255, 0, 127, 0.6), 0 8px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 0 30px rgba(255, 0, 122, 0.6), 0 8px 25px rgba(0,0,0,0.5);
       transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
       position: relative;
       overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      touch-action: manipulation;
+      width: min(100%, 380px);
     }
     .spin-grand-btn::after {
       content: '';
@@ -611,16 +812,16 @@
       30%, 100% { left: 140%; }
     }
     .spin-grand-btn:hover:not(:disabled) {
-      transform: translateY(-3px) scale(1.04);
-      box-shadow: 0 0 50px rgba(255, 0, 127, 0.9), 0 12px 30px rgba(0,0,0,0.6);
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 0 45px rgba(255, 0, 122, 0.85), 0 12px 30px rgba(0,0,0,0.6);
     }
     .spin-grand-btn:active:not(:disabled) {
-      transform: translateY(1px) scale(0.98);
+      transform: translateY(1px) scale(0.97);
     }
     .spin-grand-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
-      filter: grayscale(0.6);
+      filter: grayscale(0.7);
       box-shadow: none;
     }
 
@@ -629,24 +830,31 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
+      width: 100%;
     }
     .glass-card {
       background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--card-border);
       border-radius: var(--radius-lg);
       padding: 18px 20px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      transition: border-color 0.2s ease;
+    }
+    .glass-card:focus-within {
+      border-color: rgba(0, 240, 255, 0.3);
     }
     .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 14px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .panel-title {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -661,42 +869,80 @@
       color: var(--neon-cyan);
     }
 
-    /* Inputs */
+    /* Quick Preset Chips */
+    .presets-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .presets-row::-webkit-scrollbar {
+      display: none;
+    }
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-full);
+      color: var(--text-muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 6px 12px;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+    .chip-btn:hover, .chip-btn:active {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    /* Inputs (16px base font on mobile avoids auto-zoom in iOS) */
     .input-row {
       display: flex;
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .input-styled {
       flex: 1;
-      background: rgba(12, 9, 24, 0.7);
+      background: rgba(10, 7, 20, 0.75);
       border: 1.5px solid var(--card-border);
       border-radius: var(--radius-md);
       padding: 12px 16px;
       color: white;
-      font-family: inherit;
-      font-size: 15px;
+      font-family: var(--font-body);
+      font-size: 16px;
       outline: none;
+      min-height: 48px;
       transition: all 0.2s ease;
     }
     .input-styled:focus {
       border-color: var(--neon-cyan);
       box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-      background: rgba(18, 14, 36, 0.9);
+      background: rgba(16, 12, 32, 0.9);
     }
     .input-styled::placeholder {
-      color: rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.38);
     }
 
     /* Participants List */
     .participants-list {
       list-style: none;
-      max-height: 230px;
+      max-height: 240px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 6px;
       padding-right: 4px;
+      -webkit-overflow-scrolling: touch;
     }
     .participants-list::-webkit-scrollbar {
       width: 5px;
@@ -710,6 +956,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 8px 12px;
+      min-height: 44px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: var(--radius-sm);
@@ -717,13 +964,14 @@
     }
     .participant-item:hover {
       background: rgba(255, 255, 255, 0.09);
-      border-color: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.16);
     }
     .p-info {
       display: flex;
       align-items: center;
       gap: 10px;
       overflow: hidden;
+      flex: 1;
     }
     .p-color-dot {
       width: 12px;
@@ -733,8 +981,8 @@
       box-shadow: 0 0 8px currentColor;
     }
     .p-name {
-      font-size: 14.5px;
-      font-weight: 500;
+      font-size: 15px;
+      font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -742,24 +990,31 @@
     .p-remove {
       background: none;
       border: none;
-      color: rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.38);
       cursor: pointer;
-      font-size: 16px;
-      padding: 2px 6px;
-      border-radius: 4px;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
       transition: color 0.15s, background 0.15s;
+      touch-action: manipulation;
     }
-    .p-remove:hover {
+    .p-remove:hover, .p-remove:active {
       color: var(--neon-red);
       background: rgba(255, 42, 85, 0.15);
     }
     .empty-placeholder {
       text-align: center;
-      padding: 20px 10px;
+      padding: 24px 14px;
       color: var(--text-muted);
-      font-size: 13.5px;
+      font-size: 14px;
       border: 1px dashed rgba(255, 255, 255, 0.15);
       border-radius: var(--radius-md);
+      line-height: 1.6;
     }
 
     /* Options / Toggles */
@@ -772,29 +1027,33 @@
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       font-size: 13.5px;
       color: rgba(255, 255, 255, 0.8);
+      gap: 10px;
+      flex-wrap: wrap;
     }
     .toggle-label {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       cursor: pointer;
       user-select: none;
+      min-height: 40px;
     }
     .toggle-switch {
       position: relative;
-      width: 40px;
-      height: 22px;
+      width: 44px;
+      height: 24px;
       background: rgba(255, 255, 255, 0.15);
       border-radius: var(--radius-full);
       transition: background 0.25s;
+      flex-shrink: 0;
     }
     .toggle-switch::after {
       content: '';
       position: absolute;
       top: 3px;
       left: 3px;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: white;
       transition: transform 0.25s;
@@ -803,13 +1062,13 @@
       background: var(--neon-green);
     }
     input[type="checkbox"]:checked + .toggle-switch::after {
-      transform: translateX(18px);
+      transform: translateX(20px);
       background: #000;
     }
 
     /* Winners History Podium Card */
     .winners-card {
-      border-color: rgba(255, 230, 0, 0.25);
+      border-color: rgba(255, 208, 0, 0.25);
     }
     .winners-list {
       list-style: none;
@@ -822,11 +1081,24 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 14px;
-      background: rgba(255, 230, 0, 0.08);
-      border: 1px solid rgba(255, 230, 0, 0.2);
+      min-height: 44px;
+      background: rgba(255, 208, 0, 0.08);
+      border: 1px solid rgba(255, 208, 0, 0.2);
       border-radius: var(--radius-md);
-      font-weight: 600;
+      font-weight: 700;
       color: var(--neon-yellow);
+      gap: 8px;
+    }
+    .winner-entry-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .winner-entry-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* QR Code & Mobile Connection Card */
@@ -844,18 +1116,23 @@
       flex-shrink: 0;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
       cursor: pointer;
+      touch-action: manipulation;
     }
     .qr-image-wrap img {
       display: block;
-      width: 90px;
-      height: 90px;
+      width: 84px;
+      height: 84px;
     }
     .qr-info h4 {
       font-size: 16px;
+      font-weight: 700;
       margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .qr-info p {
-      font-size: 12px;
+      font-size: 12.5px;
       color: var(--text-muted);
       margin-bottom: 6px;
       line-height: 1.4;
@@ -865,15 +1142,21 @@
       background: rgba(0, 240, 255, 0.15);
       border: 1px solid rgba(0, 240, 255, 0.3);
       color: var(--neon-cyan);
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: var(--radius-sm);
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       cursor: pointer;
       margin-top: 4px;
       word-break: break-all;
+      touch-action: manipulation;
+    }
+    .qr-link-badge:hover, .qr-link-badge:active {
+      background: rgba(0, 240, 255, 0.25);
     }
     .room-code-display {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: var(--font-impact);
       font-size: 28px;
       color: var(--neon-cyan);
       letter-spacing: 0.12em;
@@ -883,16 +1166,12 @@
       align-items: center;
       justify-content: space-between;
       padding: 14px 18px;
-      background: rgba(24, 18, 44, 0.65);
+      background: rgba(18, 14, 34, 0.65);
       border: 1px dashed rgba(255, 255, 255, 0.2);
       border-radius: var(--radius-md);
       color: var(--text-muted);
       font-size: 13.5px;
       transition: all 0.2s ease;
-    }
-    .qr-card-hidden-bar:hover {
-      border-color: var(--neon-cyan);
-      background: rgba(24, 18, 44, 0.85);
     }
 
     /* MOBILE / REMOTE CONTROL VIEW */
@@ -908,7 +1187,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      background: rgba(12, 9, 24, 0.6);
+      background: rgba(12, 9, 24, 0.7);
       padding: 6px;
       border-radius: var(--radius-md);
       border: 1px solid var(--card-border);
@@ -917,13 +1196,19 @@
       background: none;
       border: none;
       color: var(--text-muted);
-      font-family: inherit;
+      font-family: var(--font-display);
       font-weight: 700;
-      font-size: 14px;
-      padding: 10px;
+      font-size: 14.5px;
+      padding: 12px;
+      min-height: 44px;
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      touch-action: manipulation;
     }
     .tab-btn.active {
       background: var(--neon-pink);
@@ -933,38 +1218,39 @@
 
     .remote-spin-box {
       text-align: center;
-      padding: 36px 20px;
+      padding: 32px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
     .remote-spin-btn {
-      width: 200px;
-      height: 200px;
+      width: min(70vw, 220px);
+      height: min(70vw, 220px);
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #FF2A55 0%, #FF007F 50%, #7B003E 100%);
+      background: radial-gradient(circle at 35% 35%, #FF2A55 0%, #FF007A 50%, #7B003E 100%);
       color: white;
-      border: 6px solid rgba(255, 255, 255, 0.2);
-      font-family: 'Bebas Neue', sans-serif;
+      border: 6px solid rgba(255, 255, 255, 0.25);
+      font-family: var(--font-impact);
       font-size: 38px;
       letter-spacing: 0.06em;
       cursor: pointer;
-      box-shadow: 0 0 50px rgba(255, 0, 127, 0.7), 0 10px 30px rgba(0,0,0,0.6);
+      box-shadow: 0 0 50px rgba(255, 0, 122, 0.7), 0 10px 30px rgba(0,0,0,0.6);
       transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      margin: 20px 0;
+      gap: 6px;
+      margin: 18px 0;
       user-select: none;
+      touch-action: manipulation;
     }
     .remote-spin-btn:active:not(:disabled) {
       transform: scale(0.92);
-      box-shadow: 0 0 25px rgba(255, 0, 127, 0.9);
+      box-shadow: 0 0 25px rgba(255, 0, 122, 0.9);
     }
     .remote-spin-btn:disabled {
-      opacity: 0.4;
+      opacity: 0.45;
       cursor: not-allowed;
       filter: grayscale(0.8);
       box-shadow: none;
@@ -980,9 +1266,9 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(5, 3, 12, 0.88);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(4, 3, 10, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -997,44 +1283,52 @@
     .modal-card {
       background: linear-gradient(145deg, #241945 0%, #120c24 100%);
       border: 2px solid var(--neon-yellow);
-      border-radius: var(--radius-lg);
-      padding: 34px 28px;
+      border-radius: var(--radius-xl);
+      padding: 32px 26px;
       max-width: 440px;
       width: 100%;
       text-align: center;
       position: relative;
-      box-shadow: 0 0 60px rgba(255, 230, 0, 0.35), 0 20px 50px rgba(0,0,0,0.8);
-      animation: popModal 0.4s cubic-bezier(0.18, 1.25, 0.4, 1);
+      box-shadow: 0 0 60px rgba(255, 208, 0, 0.35), 0 20px 50px rgba(0,0,0,0.8);
+      animation: popModal 0.35s cubic-bezier(0.18, 1.25, 0.4, 1);
     }
     @keyframes popModal {
-      from { transform: scale(0.75); opacity: 0; }
+      from { transform: scale(0.8); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
     .trophy-badge {
-      font-size: 64px;
-      line-height: 1;
-      margin-bottom: 12px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 208, 0, 0.3) 0%, rgba(255, 208, 0, 0.05) 70%);
+      border: 2px solid var(--neon-yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--neon-yellow);
+      margin: 0 auto 16px;
       animation: bounceTrophy 1.2s infinite alternate ease-in-out;
+      box-shadow: 0 0 30px rgba(255, 208, 0, 0.5);
     }
     @keyframes bounceTrophy {
-      0% { transform: translateY(0) rotate(-5deg); }
-      100% { transform: translateY(-10px) rotate(5deg); }
+      0% { transform: translateY(0) rotate(-4deg); }
+      100% { transform: translateY(-8px) rotate(4deg); }
     }
     .winner-title {
-      font-size: 14px;
+      font-size: 13.5px;
       text-transform: uppercase;
       letter-spacing: 0.15em;
       color: var(--neon-yellow);
       font-weight: 800;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .winner-name-highlight {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(42px, 10vw, 58px);
-      line-height: 1;
+      font-family: var(--font-impact);
+      font-size: clamp(38px, 9vw, 56px);
+      line-height: 1.05;
       color: #FFFFFF;
-      text-shadow: 0 0 25px rgba(255, 230, 0, 0.8), 0 4px 10px rgba(0,0,0,0.6);
-      margin-bottom: 24px;
+      text-shadow: 0 0 25px rgba(255, 208, 0, 0.8), 0 4px 10px rgba(0,0,0,0.6);
+      margin-bottom: 22px;
       word-break: break-word;
     }
 
@@ -1042,13 +1336,13 @@
     .textarea-styled {
       width: 100%;
       height: 160px;
-      background: rgba(12, 9, 24, 0.8);
+      background: rgba(10, 7, 20, 0.8);
       border: 1.5px solid var(--card-border);
       border-radius: var(--radius-md);
       padding: 14px;
       color: white;
-      font-family: inherit;
-      font-size: 14px;
+      font-family: var(--font-body);
+      font-size: 15px;
       outline: none;
       resize: vertical;
       margin-bottom: 16px;
@@ -1061,31 +1355,43 @@
     /* Notification Toast */
     .toast-msg {
       position: fixed;
-      bottom: 24px;
+      bottom: calc(20px + var(--safe-bottom));
       left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: rgba(26, 20, 48, 0.95);
+      background: rgba(24, 18, 44, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--neon-cyan);
       color: white;
-      padding: 12px 24px;
+      padding: 12px 22px;
       border-radius: var(--radius-full);
       box-shadow: var(--glow-cyan);
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       z-index: 200;
       transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
       pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 90vw;
+      text-align: center;
     }
     .toast-msg.show {
       transform: translateX(-50%) translateY(0);
     }
 
-    @media (max-width: 480px) {
-      #app { padding: 10px 12px 28px; }
-      .header-bar { padding: 10px 14px; }
-      .logo-title { font-size: 22px; }
-      .wheel-outer-ring { padding: 14px; width: min(100%, 330px); }
-      .spin-grand-btn { font-size: 24px; padding: 12px 34px; }
+    /* Extra Small Screen Polish (< 420px) */
+    @media (max-width: 420px) {
+      #app { padding: 10px 10px 28px; }
+      .header-bar { padding: 8px 12px; margin-bottom: 12px; }
+      .logo-title { font-size: 19px; }
+      .logo-badge { width: 36px; height: 36px; }
+      .wheel-outer-ring { padding: 12px; width: min(100%, 320px); }
+      .spin-grand-btn { font-size: 24px; min-height: 52px; padding: 10px 24px; }
+      .glass-card { padding: 14px 14px; }
+      .modal-card { padding: 24px 18px; }
+      .role-card { padding: 22px 18px; }
     }
   </style>
 </head>
@@ -1105,21 +1411,50 @@
   (function() {
     'use strict';
 
+    // --- SVGs Icon Library (Clean, Vector, Accessible) ---
+    const Icons = {
+      wheel: `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="2"/></svg>`,
+      monitor: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>`,
+      smartphone: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>`,
+      volume2: `<svg class="svg-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`,
+      volumeX: `<svg class="svg-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>`,
+      maximize: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`,
+      minimize: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14h6v6m10-10h-6V4m0 6 7-7M3 21l7-7"/></svg>`,
+      trophy: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
+      medal: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><circle cx="12" cy="15" r="5"/></svg>`,
+      plus: `<svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+      trash: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
+      paste: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>`,
+      shuffle: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>`,
+      sparkles: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
+      qr: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>`,
+      copy: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
+      check: `<svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`,
+      x: `<svg class="svg-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+      eye: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+      eyeOff: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`,
+      users: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+      play: `<svg class="svg-icon fill-current" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+      gamepad: `<svg class="svg-icon" viewBox="0 0 24 24"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg>`,
+      lock: `<svg class="svg-icon" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+      wifi: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" x2="12.01" y1="20" y2="20"/></svg>`
+    };
+
     // --- Vibrant Rainbow Neon Color Palette ---
     const PALETTE = [
-      '#FF007F', // Neon Pink
-      '#00E5FF', // Electric Cyan
-      '#FFD600', // Bright Gold
-      '#00E676', // Emerald Green
-      '#7C4DFF', // Neon Violet
-      '#FF6D00', // Neon Orange
+      '#FF007A', // Cyber Pink
+      '#00F0FF', // Electric Cyan
+      '#FFD000', // Bright Gold
+      '#00F59B', // Emerald Green
+      '#8A2BE2', // Neon Violet
+      '#FF5400', // Neon Orange
       '#2979FF', // Vivid Blue
-      '#FF1744', // Ruby Crimson
-      '#1DE9B6', // Seafoam Neon
+      '#FF2A55', // Ruby Crimson
+      '#00E5FF', // Seafoam Neon
       '#F50057'  // Deep Magenta
     ];
 
-    // --- Web Audio Synthesizer ---
+    // --- Polyphonic Web Audio Synthesizer Engine ---
     class AudioEngine {
       constructor() {
         this.ctx = null;
@@ -1168,19 +1503,25 @@
         this.init();
         if (!this.ctx) return;
         try {
-          const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-          notes.forEach((f, i) => {
+          const chords = [
+            { f: 523.25, t: 0 },    // C5
+            { f: 659.25, t: 0.08 }, // E5
+            { f: 783.99, t: 0.16 }, // G5
+            { f: 1046.50, t: 0.26 },// C6
+            { f: 1318.51, t: 0.38 } // E6
+          ];
+          chords.forEach((note) => {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(f, this.ctx.currentTime + i * 0.1);
-            gain.gain.setValueAtTime(0, this.ctx.currentTime + i * 0.1);
-            gain.gain.linearRampToValueAtTime(0.38, this.ctx.currentTime + i * 0.1 + 0.04);
-            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.1 + 0.85);
+            osc.frequency.setValueAtTime(note.f, this.ctx.currentTime + note.t);
+            gain.gain.setValueAtTime(0, this.ctx.currentTime + note.t);
+            gain.gain.linearRampToValueAtTime(0.35, this.ctx.currentTime + note.t + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + note.t + 0.9);
             osc.connect(gain);
             gain.connect(this.ctx.destination);
-            osc.start(this.ctx.currentTime + i * 0.1);
-            osc.stop(this.ctx.currentTime + i * 0.1 + 0.85);
+            osc.start(this.ctx.currentTime + note.t);
+            osc.stop(this.ctx.currentTime + note.t + 0.9);
           });
         } catch (e) {}
       }
@@ -1193,20 +1534,28 @@
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(750, this.ctx.currentTime);
-          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+          osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.035);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start();
-          osc.stop(this.ctx.currentTime + 0.04);
+          osc.stop(this.ctx.currentTime + 0.035);
         } catch (e) {}
+      }
+
+      playShuffle() {
+        if (this.muted) return;
+        this.init();
+        for (let i = 0; i < 4; i++) {
+          setTimeout(() => this.playTick(400 + i * 80), i * 45);
+        }
       }
     }
 
     const audio = new AudioEngine();
 
-    // --- Robust Multi-Layer Synchronization Manager (PeerJS WebRTC + Native WebSocket + BroadcastChannel) ---
+    // --- Multi-Tier Synchronization Manager (PeerJS WebRTC + Native WebSocket + BroadcastChannel) ---
     class SyncManager {
       constructor(roomCode, role, onMessageCallback) {
         this.roomCode = String(roomCode || '').trim();
@@ -1217,7 +1566,7 @@
         
         this.ws = null;
         this.peer = null;
-        this.peerConnections = new Map(); // connId -> DataConnection
+        this.peerConnections = new Map();
         this.hostConn = null;
         this.broadcastChannel = null;
         this.destroyed = false;
@@ -1322,7 +1671,6 @@
 
         try {
           if (this.role === 'host') {
-            // Host listens on fixed peer ID
             this.peer = new Peer(hostPeerId, peerConfig);
 
             this.peer.on('open', (id) => {
@@ -1338,7 +1686,6 @@
               conn.on('open', () => {
                 this.connected = true;
                 triggerRender();
-                // Send current room state to newly connected mobile
                 conn.send({
                   action: 'STATE_SYNC_RESPONSE',
                   data: {
@@ -1377,7 +1724,6 @@
             });
 
           } else {
-            // Mobile client connects to host peer
             this.peer = new Peer(null, peerConfig);
 
             this.peer.on('open', (id) => {
@@ -1440,17 +1786,14 @@
           timestamp: Date.now()
         };
 
-        // 1. BroadcastChannel (same PC tabs)
         if (this.broadcastChannel) {
           try { this.broadcastChannel.postMessage(payload); } catch (e) {}
         }
 
-        // 2. Native WebSocket (local Wi-Fi server)
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
           try { this.ws.send(JSON.stringify(payload)); } catch (e) {}
         }
 
-        // 3. PeerJS WebRTC DataChannel
         if (this.role === 'host') {
           for (const conn of this.peerConnections.values()) {
             if (conn && conn.open) {
@@ -1471,7 +1814,7 @@
       }
     }
 
-    // Helper to calculate exact base URL (preserves repository pathname on GitHub Pages or custom hosting)
+    // URL helper
     function getCleanBaseUrl() {
       if (typeof window === 'undefined' || !window.location) {
         return 'http://localhost:3000/';
@@ -1497,6 +1840,7 @@
     const state = {
       view: 'select', // 'select' | 'host' | 'mobile'
       mobileTab: 'remote', // 'remote' | 'participants'
+      mobileStageTab: 'ruleta', // 'ruleta' | 'participants' | 'winners' (for host mode on mobile screens)
       roomCode: '',
       serverUrl: getCleanBaseUrl(),
       localIp: '192.168.1.36',
@@ -1517,10 +1861,10 @@
       showQRCard: true,
       expandedStage: false,
       sync: null,
-      angle: 0 // Current rotation in radians
+      angle: 0
     };
 
-    // Auto-detect server network IP with fast timeout
+    // Auto-detect server network IP
     async function fetchServerInfo() {
       if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || /^192\.168\./.test(window.location.hostname)) {
@@ -1546,7 +1890,7 @@
     function showToast(msg) {
       const toast = document.getElementById('toast');
       if (!toast) return;
-      toast.textContent = msg;
+      toast.innerHTML = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2800);
     }
@@ -1574,7 +1918,7 @@
                 id: Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                 name: clean
               });
-              showToast(`📱 + "${clean}" agregado a la ruleta`);
+              showToast(`${Icons.smartphone} + "${clean}" agregado a la ruleta`);
               audio.playClick();
               triggerRender();
               if (state.view === 'host' && state.sync) {
@@ -1603,7 +1947,7 @@
               }
             });
             if (count > 0) {
-              showToast(`📱 + ${count} participantes agregados`);
+              showToast(`${Icons.smartphone} + ${count} participantes agregados`);
               audio.playClick();
               triggerRender();
               if (state.view === 'host' && state.sync) {
@@ -1693,8 +2037,8 @@
     // --- Celebratory Confetti ---
     function triggerConfetti() {
       if (typeof confetti === 'function') {
-        const count = 200;
-        const defaults = { origin: { y: 0.7 } };
+        const count = 220;
+        const defaults = { origin: { y: 0.68 } };
         function fire(particleRatio, opts) {
           confetti({
             ...defaults,
@@ -1702,8 +2046,8 @@
             particleCount: Math.floor(count * particleRatio)
           });
         }
-        fire(0.25, { spread: 26, startVelocity: 55 });
-        fire(0.2, { spread: 60 });
+        fire(0.25, { spread: 30, startVelocity: 55 });
+        fire(0.2, { spread: 65 });
         fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
         fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
         fire(0.1, { spread: 120, startVelocity: 45 });
@@ -1725,7 +2069,7 @@
       return html;
     }
 
-    // --- HIGH-PRECISION 2D CANVAS WHEEL RENDERER (Crisp & 100% Distortion-Free) ---
+    // --- HIGH-PRECISION 2D CANVAS WHEEL RENDERER ---
     function drawWheel() {
       const canvas = document.getElementById('wheelCanvas');
       if (!canvas) return;
@@ -1751,14 +2095,14 @@
       if (n === 0) {
         ctx.beginPath();
         ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#16102D';
+        ctx.fillStyle = '#140F2B';
         ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        ctx.font = 'bold 15px "Outfit", sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('Agrega participantes para comenzar', cx, cy);
@@ -1782,14 +2126,14 @@
         ctx.arc(0, 0, radius, startA, endA);
         ctx.closePath();
 
-        const grad = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius);
+        const grad = ctx.createRadialGradient(0, 0, radius * 0.15, 0, 0, radius);
         grad.addColorStop(0, color);
-        grad.addColorStop(1, adjustColorBrightness(color, -25));
+        grad.addColorStop(1, adjustColorBrightness(color, -28));
         ctx.fillStyle = grad;
         ctx.fill();
 
         // Sector Divider Border
-        ctx.strokeStyle = '#080614';
+        ctx.strokeStyle = '#070814';
         ctx.lineWidth = 2.5;
         ctx.stroke();
 
@@ -1800,9 +2144,9 @@
         const pinY = Math.sin(startA) * (radius - pinInset);
         ctx.beginPath();
         ctx.arc(pinX, pinY, pinRadius, 0, Math.PI * 2);
-        ctx.fillStyle = '#FFE600';
+        ctx.fillStyle = '#FFD000';
         ctx.fill();
-        ctx.strokeStyle = '#332600';
+        ctx.strokeStyle = '#2B2000';
         ctx.lineWidth = size > 480 ? 1.5 : 1;
         ctx.stroke();
 
@@ -1889,12 +2233,13 @@
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        const ease = 1 - Math.pow(1 - progress, 4.2);
+        // Quintic ease out curve for realistic inercial spinning
+        const ease = 1 - Math.pow(1 - progress, 4.4);
         state.angle = startAngle + totalDelta * ease;
 
         drawWheel();
 
-        // Calculate passing sector pins for sound tick & needle wobble
+        // Sound tick & needle wobble on passing pegs
         const currentTopRel = ((3 * Math.PI / 2 - state.angle) % twoPi + twoPi) % twoPi;
         const currentPeg = Math.floor(currentTopRel / sliceAngle);
         if (currentPeg !== lastPegIndex) {
@@ -1920,7 +2265,7 @@
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          // Spin Complete!
+          // Spin Complete
           state.spinning = false;
           const winnerPayload = {
             name: winner.name,
@@ -1951,7 +2296,7 @@
       requestAnimationFrame(animate);
     }
 
-    // --- UI Helpers & Event Handlers ---
+    // --- Helpers & Presets ---
     function addSingleParticipant(name) {
       const clean = name.trim();
       if (!clean) return;
@@ -1980,20 +2325,51 @@
       triggerRender();
     }
 
+    function shuffleParticipants() {
+      if (state.participants.length < 2) return;
+      for (let i = state.participants.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [state.participants[i], state.participants[j]] = [state.participants[j], state.participants[i]];
+      }
+      audio.playShuffle();
+      if (state.sync) {
+        state.sync.send('STATE_SYNC_RESPONSE', {
+          participants: state.participants,
+          winners: state.winners,
+          removeWinnerAfterSpin: state.removeWinnerAfterSpin
+        });
+      }
+      showToast('🔀 Lista de participantes mezclada');
+      triggerRender();
+    }
+
     function loadPreset(type) {
-      if (type === 'numbers') {
+      if (type === 'numbers-10') {
         state.participants = Array.from({ length: 10 }, (_, i) => ({
           id: String(i + 1),
           name: `Número ${i + 1}`
         }));
+      } else if (type === 'numbers-20') {
+        state.participants = Array.from({ length: 20 }, (_, i) => ({
+          id: String(i + 1),
+          name: `Número ${i + 1}`
+        }));
+      } else if (type === 'yesno') {
+        state.participants = [
+          { id: '1', name: 'SÍ' },
+          { id: '2', name: 'NO' },
+          { id: '3', name: 'SÍ' },
+          { id: '4', name: 'NO' },
+          { id: '5', name: 'VUELVE A GIRAR' }
+        ];
       } else if (type === 'sample') {
         state.participants = [
-          { id: '1', name: 'Sofía Castro' },
-          { id: '2', name: 'Mateo Morales' },
-          { id: '3', name: 'Camila Rojas' },
-          { id: '4', name: 'Felipe Herrera' },
-          { id: '5', name: 'Lucía Benítez' },
-          { id: '6', name: 'Tomás Vargas' }
+          { id: '1', name: 'Ana García' },
+          { id: '2', name: 'Carlos López' },
+          { id: '3', name: 'María Rodríguez' },
+          { id: '4', name: 'Juan Pablo' },
+          { id: '5', name: 'Valentina Soto' },
+          { id: '6', name: 'Diego Morales' }
         ];
       }
       audio.playClick();
@@ -2004,7 +2380,7 @@
           removeWinnerAfterSpin: state.removeWinnerAfterSpin
         });
       }
-      showToast('✓ Lista cargada con éxito');
+      showToast('✓ Preset cargado con éxito');
       triggerRender();
     }
 
@@ -2039,8 +2415,10 @@
 
       return `
         <header class="header-bar">
-          <div class="logo-group" onclick="window.ruletaActions.setRole('select')">
-            <span class="logo-icon">🎡</span>
+          <div class="logo-group" onclick="window.ruletaActions.setRole('select')" title="Volver a la selección">
+            <div class="logo-badge">
+              ${Icons.wheel}
+            </div>
             <div>
               <h1 class="logo-title gradient-text">La Ruleta</h1>
               <span class="logo-subtitle">Sorteos en Vivo</span>
@@ -2049,23 +2427,23 @@
           
           <div class="header-actions">
             ${state.roomCode ? `
-              <div class="sync-status ${isConnected ? '' : 'offline'}" title="${isConnected ? 'Sincronizado vía WebRTC' : 'Conectando sincronización...'}">
+              <div class="sync-status ${isConnected ? '' : 'offline'}" title="${isConnected ? 'Sincronizado vía WebRTC / WebSocket' : 'Conectando sincronización...'}">
                 <span class="status-dot"></span>
                 <span>${isConnected ? 'Sincronizado' : 'Conectando'}</span>
               </div>
               <button class="room-badge" onclick="window.ruletaActions.toggleQRModal()" title="Abrir código QR para celulares">
+                ${Icons.qr}
                 <span>Sala: <strong>${state.roomCode}</strong></span>
-                <span>📱</span>
               </button>
             ` : ''}
 
-            <button class="icon-btn" onclick="window.ruletaActions.toggleAudio()" title="${isMuted ? 'Activar sonido' : 'Silenciar sonido'}">
-              ${isMuted ? '🔇' : '🔊'}
+            <button class="icon-btn" onclick="window.ruletaActions.toggleAudio()" aria-label="${isMuted ? 'Activar sonido' : 'Silenciar sonido'}" title="${isMuted ? 'Activar sonido' : 'Silenciar sonido'}">
+              ${isMuted ? Icons.volumeX : Icons.volume2}
             </button>
 
             ${isHost ? `
-              <button class="icon-btn ${state.expandedStage ? 'active-stage' : ''}" onclick="window.ruletaActions.toggleExpandStage()" title="${state.expandedStage ? 'Restaurar vista con paneles' : 'Modo Ruleta Gigante / Pantalla Completa'}">
-                ${state.expandedStage ? '🗗' : '⛶'}
+              <button class="icon-btn ${state.expandedStage ? 'active-stage' : ''}" onclick="window.ruletaActions.toggleExpandStage()" aria-label="Modo Pantalla Completa" title="${state.expandedStage ? 'Restaurar vista con paneles' : 'Modo Ruleta Gigante / Pantalla Completa'}">
+                ${state.expandedStage ? Icons.minimize : Icons.maximize}
               </button>
             ` : ''}
           </div>
@@ -2076,35 +2454,53 @@
     function renderSelectScreen() {
       return `
         <div class="role-selection-wrapper">
-          <h2 class="hero-heading font-bebas gradient-text">RULETA DE SORTEOS</h2>
-          <p class="hero-sub">Ingresa desde tu computador para proyectar la ruleta en pantalla grande o sincronízala con tu celular para controlarla a distancia.</p>
+          <h2 class="hero-heading font-outfit gradient-text">RULETA DE SORTEOS</h2>
+          <p class="hero-sub">Proyecta la ruleta interactiva en pantalla grande o sincronízala en tiempo real con tu teléfono celular para controlarla a distancia.</p>
 
           <div class="roles-grid">
             <div class="role-card host-card" onclick="window.ruletaActions.startHost()">
-              <div class="role-badge-icon">🖥️</div>
-              <h3 class="gradient-text">Soy Anfitrión (Computador)</h3>
+              <div class="role-badge-icon">
+                ${Icons.monitor}
+              </div>
+              <h3 class="gradient-gold">Soy Anfitrión (Pantalla / PC)</h3>
               <p>Muestra la ruleta gigante en monitor o proyector, reproduce efectos de sonido, luces y genera el código QR para celulares.</p>
               <ul class="role-features">
-                <li>Ruleta interactiva con luces LED neón</li>
-                <li>Efectos de sonido & confeti de ganador</li>
-                <li>Código QR para sincronizar celulares</li>
-                <li>Importador de listas desde Excel/WhatsApp</li>
+                <li>${Icons.check} Ruleta interactiva con luces LED neón</li>
+                <li>${Icons.check} Efectos de sonido & lluvia de confeti</li>
+                <li>${Icons.check} Código QR para sincronizar celulares</li>
+                <li>${Icons.check} Importador rápido de listas Excel / WhatsApp</li>
               </ul>
-              <button class="btn btn-gold" style="margin-top: 20px; width: 100%;">Crear Sala en Computador</button>
+              <button class="btn btn-gold" style="margin-top: auto; width: 100%;">
+                ${Icons.play} Crear Sala en Pantalla
+              </button>
             </div>
 
             <div class="role-card" onclick="window.ruletaActions.startMobile()">
-              <div class="role-badge-icon">📱</div>
+              <div class="role-badge-icon">
+                ${Icons.smartphone}
+              </div>
               <h3 class="gradient-cyan">Soy Participante / Control Celular</h3>
-              <p>Conéctate a una sala existente para ingresar nombres desde tu teléfono o controlar el giro de la ruleta a distancia.</p>
+              <p>Conéctate a una sala existente para anotar participantes desde tu teléfono o activar el giro de la ruleta a distancia.</p>
               <ul class="role-features">
-                <li>Ingreso rápido de participantes táctil</li>
-                <li>Girar la ruleta a distancia desde el celular</li>
-                <li>Sincronización instantánea en tiempo real</li>
-                <li>Vibración háptica y avisos de ganador</li>
+                <li>${Icons.check} Ingreso táctil ultra rápido de nombres</li>
+                <li>${Icons.check} Botón remoto para girar la ruleta</li>
+                <li>${Icons.check} Sincronización instantánea en tiempo real</li>
+                <li>${Icons.check} Vibración háptica en giros y ganador</li>
               </ul>
-              <button class="btn btn-cyan" style="margin-top: 20px; width: 100%;">Conectar desde Celular</button>
+              <button class="btn btn-cyan" style="margin-top: auto; width: 100%;">
+                ${Icons.gamepad} Conectar desde Celular
+              </button>
             </div>
+          </div>
+
+          <div class="direct-play-banner">
+            <div>
+              <strong style="display:block; font-size:15px; color:#FFF; margin-bottom:2px;">¿Quieres jugar directamente en este dispositivo?</strong>
+              <span style="font-size:13.5px; color:var(--text-muted);">Inicia sin necesidad de sincronización entre dos pantallas.</span>
+            </div>
+            <button class="btn btn-glass btn-sm" onclick="window.ruletaActions.startDirectPlay()">
+              ${Icons.wheel} Jugar Ahora en este Dispositivo
+            </button>
           </div>
         </div>
       `;
@@ -2112,12 +2508,25 @@
 
     function renderHostScreen() {
       const mobileUrl = getMobileUrl(state.roomCode);
-      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(mobileUrl)}`;
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(mobileUrl)}`;
 
       return `
         ${renderHeader()}
 
-        <div class="host-stage ${state.expandedStage ? 'expanded' : ''}">
+        <!-- Mobile Stage Navigation Tabs (Active on mobile/tablets < 960px) -->
+        <div class="mobile-stage-tabs">
+          <button class="mobile-tab-pill pill-ruleta ${state.mobileStageTab === 'ruleta' ? 'active' : ''}" onclick="window.ruletaActions.setMobileStageTab('ruleta')">
+            ${Icons.wheel} Ruleta
+          </button>
+          <button class="mobile-tab-pill ${state.mobileStageTab === 'participants' ? 'active' : ''}" onclick="window.ruletaActions.setMobileStageTab('participants')">
+            ${Icons.users} Participantes (${state.participants.length})
+          </button>
+          <button class="mobile-tab-pill ${state.mobileStageTab === 'winners' ? 'active' : ''}" onclick="window.ruletaActions.setMobileStageTab('winners')">
+            ${Icons.trophy} Ganadores (${state.winners.length})
+          </button>
+        </div>
+
+        <div class="host-stage ${state.expandedStage ? 'expanded' : ''} tab-active-${state.mobileStageTab}">
           <!-- Left Column: Big Stage Wheel -->
           <div class="wheel-stage-container">
             <div class="wheel-outer-ring">
@@ -2134,15 +2543,15 @@
                   <defs>
                     <linearGradient id="pointerGrad" x1="0" y1="0" x2="38" y2="50" gradientUnits="userSpaceOnUse">
                       <stop stop-color="#FF2A55" />
-                      <stop offset="1" stop-color="#FF007F" />
+                      <stop offset="1" stop-color="#FF007A" />
                     </linearGradient>
                   </defs>
                 </svg>
               </div>
 
               <!-- Center Hub -->
-              <div class="wheel-center-hub" onclick="window.ruletaActions.spin()" title="¡Clic para girar!">
-                <span>✨</span>
+              <div class="wheel-center-hub" onclick="window.ruletaActions.spin()" title="¡Toca para girar!">
+                ${Icons.sparkles}
               </div>
 
               <!-- Crisp Canvas Wheel -->
@@ -2153,17 +2562,12 @@
 
             <!-- Grand Spin Button -->
             <button class="spin-grand-btn" ${state.spinning || state.participants.length < 2 ? 'disabled' : ''} onclick="window.ruletaActions.spin()">
-              ${state.spinning ? '¡GIRANDO...!' : '¡GIRAR RULETA!'}
+              ${Icons.play}
+              <span>${state.spinning ? '¡GIRANDO...!' : '¡GIRAR RULETA!'}</span>
             </button>
-            
-            <div style="display:flex; gap:10px; align-items:center; justify-content:center; width:100%; max-width:380px; margin-top:10px;">
-              <button class="btn btn-glass" style="font-size:13px; padding:7px 16px; border-radius:var(--radius-full); width:100%;" onclick="window.ruletaActions.toggleExpandStage()">
-                ${state.expandedStage ? '🗗 Restaurar Paneles' : '⛶ Expandir Ruleta (Pantalla Completa)'}
-              </button>
-            </div>
 
             ${state.participants.length < 2 ? `
-              <p style="color:var(--text-muted); font-size:13px; margin-top:10px; text-align:center;">
+              <p style="color:var(--text-muted); font-size:13.5px; margin-top:10px; text-align:center;">
                 Agrega al menos 2 participantes para comenzar el sorteo.
               </p>
             ` : ''}
@@ -2173,65 +2577,87 @@
           <div class="panels-column">
             
             <!-- Quick Mobile Connect Card / Hidden Toggle -->
-            ${state.showQRCard ? `
-              <div class="glass-card qr-card" style="position:relative;">
-                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:10px;">
-                  <span style="font-size:11.5px; font-weight:700; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:0.08em;">
-                    📱 Conexión de Celular
-                  </span>
-                  <button class="btn btn-glass" style="padding:4px 10px; font-size:11px; border-radius:6px;" onclick="window.ruletaActions.toggleQRCard()" title="Ocultar código QR del público">
-                    👁️ Ocultar QR
+            <div class="qr-card-container">
+              ${state.showQRCard ? `
+                <div class="glass-card qr-card" style="position:relative;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:10px;">
+                    <span style="font-size:12px; font-weight:700; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:0.08em; display:flex; align-items:center; gap:6px;">
+                      ${Icons.smartphone} Sincronización Móvil
+                    </span>
+                    <button class="btn btn-glass btn-sm" onclick="window.ruletaActions.toggleQRCard()" title="Ocultar código QR">
+                      ${Icons.eyeOff} Ocultar
+                    </button>
+                  </div>
+                  <div style="display:flex; gap:14px; align-items:center; width:100%;">
+                    <div class="qr-image-wrap" onclick="window.ruletaActions.toggleQRModal()" title="Ampliar QR">
+                      <img src="${qrApiUrl}" alt="QR Sala ${state.roomCode}" />
+                    </div>
+                    <div class="qr-info" style="flex:1;">
+                      <h4>${Icons.wifi} Conecta tu Celular</h4>
+                      <p>Escanea con tu cámara para anotar participantes o controlar el giro:</p>
+                      <div class="qr-link-badge" onclick="window.ruletaActions.copyRoomLink('${mobileUrl}')" title="Copiar enlace directo">
+                        ${Icons.copy}
+                        <span>${mobileUrl}</span>
+                      </div>
+                      <div style="display:flex; align-items:baseline; gap:8px; margin-top:6px;">
+                        <span style="font-size:12px; color:var(--text-muted);">Código de Sala:</span>
+                        <span class="room-code-display">${state.roomCode}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ` : `
+                <div class="qr-card-hidden-bar">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="color:var(--neon-cyan);">${Icons.lock}</span>
+                    <span><strong>Código QR Oculto</strong> (Protegido del público)</span>
+                  </div>
+                  <button class="btn btn-glass btn-sm" onclick="window.ruletaActions.toggleQRCard()">
+                    ${Icons.eye} Mostrar QR
                   </button>
                 </div>
-                <div style="display:flex; gap:14px; align-items:center; width:100%;">
-                  <div class="qr-image-wrap" onclick="window.ruletaActions.toggleQRModal()" title="Clic para ampliar QR">
-                    <img src="${qrApiUrl}" alt="QR Sala ${state.roomCode}" />
-                  </div>
-                  <div class="qr-info" style="flex:1;">
-                    <h4>📱 Sincronizar Celular</h4>
-                    <p>Escanea para anotar nombres o controlar el giro:</p>
-                    <div class="qr-link-badge" onclick="window.ruletaActions.copyRoomLink('${mobileUrl}')" title="Clic para copiar enlace">
-                      ${mobileUrl}
-                    </div>
-                    <div style="display:flex; align-items:baseline; gap:8px; margin-top:6px;">
-                      <span style="font-size:12px; color:var(--text-muted);">Código de Sala:</span>
-                      <span class="room-code-display">${state.roomCode}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ` : `
-              <div class="qr-card-hidden-bar">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span style="font-size:16px;">🔒</span>
-                  <span><strong>Código QR Oculto</strong> (Protegido del público)</span>
-                </div>
-                <button class="btn btn-glass" style="padding:6px 14px; font-size:12px;" onclick="window.ruletaActions.toggleQRCard()">
-                  👁️ Mostrar QR
-                </button>
-              </div>
-            `}
+              `}
+            </div>
 
             <!-- Participants Panel -->
-            <div class="glass-card">
+            <div class="glass-card participants-card">
               <div class="panel-header">
                 <div class="panel-title">
+                  ${Icons.users}
                   <span>Participantes</span>
                   <span class="count-badge">${state.participants.length}</span>
                 </div>
                 <div style="display:flex; gap:6px;">
-                  <button class="btn btn-glass" style="padding:6px 12px; font-size:12px;" onclick="window.ruletaActions.openBatchModal()">
-                    📋 Pegar Lista
+                  <button class="btn btn-glass btn-sm" onclick="window.ruletaActions.shuffleParticipants()" title="Mezclar el orden aleatoriamente">
+                    ${Icons.shuffle} Mezclar
                   </button>
-                  <button class="btn btn-glass" style="padding:6px 12px; font-size:12px;" onclick="window.ruletaActions.loadPresetMenu()">
-                    ⚡ Muestra
+                  <button class="btn btn-glass btn-sm" onclick="window.ruletaActions.openBatchModal()">
+                    ${Icons.paste} Pegar Lista
                   </button>
                 </div>
               </div>
 
+              <!-- Quick Presets -->
+              <div class="presets-row">
+                <button class="chip-btn" onclick="window.ruletaActions.loadPreset('sample')">
+                  ${Icons.sparkles} Nombres Muestra
+                </button>
+                <button class="chip-btn" onclick="window.ruletaActions.loadPreset('numbers-10')">
+                  # 1 al 10
+                </button>
+                <button class="chip-btn" onclick="window.ruletaActions.loadPreset('numbers-20')">
+                  # 1 al 20
+                </button>
+                <button class="chip-btn" onclick="window.ruletaActions.loadPreset('yesno')">
+                  Sí / No
+                </button>
+              </div>
+
               <form onsubmit="event.preventDefault(); window.ruletaActions.submitAddParticipant(this.participantName.value); this.reset();" class="input-row">
                 <input type="text" name="participantName" class="input-styled" placeholder="Escribe un nombre y presiona Enter..." autocomplete="off" />
-                <button type="submit" class="btn btn-primary" style="padding:10px 18px;">Agregar</button>
+                <button type="submit" class="btn btn-primary">
+                  ${Icons.plus} Agregar
+                </button>
               </form>
 
               <ul class="participants-list">
@@ -2241,11 +2667,13 @@
                       <span class="p-color-dot" style="background:${PALETTE[idx % PALETTE.length]}; color:${PALETTE[idx % PALETTE.length]}"></span>
                       <span class="p-name">${p.name}</span>
                     </div>
-                    <button class="p-remove" onclick="window.ruletaActions.removeParticipant('${p.id}')" title="Eliminar">✕</button>
+                    <button class="p-remove" onclick="window.ruletaActions.removeParticipant('${p.id}')" aria-label="Eliminar ${p.name}" title="Eliminar">
+                      ${Icons.x}
+                    </button>
                   </li>
                 `).join('') : `
                   <div class="empty-placeholder">
-                    Aún no hay participantes en la ruleta.<br>Agrega nombres arriba o escanea el QR desde tu celular.
+                    Aún no hay participantes en la ruleta.<br>Agrega nombres arriba, usa un preset o escanea el QR desde tu celular.
                   </div>
                 `}
               </ul>
@@ -2259,7 +2687,7 @@
                 </label>
 
                 ${state.participants.length ? `
-                  <button class="btn-danger" style="background:none; border:none; font-size:12px; cursor:pointer; text-decoration:underline;" onclick="window.ruletaActions.clearParticipants()">
+                  <button class="btn-danger" style="background:none; border:none; font-size:12.5px; cursor:pointer; text-decoration:underline; padding:4px 8px;" onclick="window.ruletaActions.clearParticipants()">
                     Vaciar lista
                   </button>
                 ` : ''}
@@ -2267,27 +2695,29 @@
             </div>
 
             <!-- Winners History Panel -->
-            ${state.winners.length ? `
-              <div class="glass-card winners-card">
-                <div class="panel-header">
-                  <div class="panel-title" style="color:var(--neon-yellow);">
-                    <span>🏆 Ganadores del Sorteo</span>
-                    <span class="count-badge" style="background:rgba(255,230,0,0.15); color:var(--neon-yellow);">${state.winners.length}</span>
-                  </div>
-                  <button class="btn-glass" style="padding:4px 10px; font-size:11px;" onclick="window.ruletaActions.clearWinners()">
-                    Limpiar
-                  </button>
+            <div class="glass-card winners-card" style="${state.winners.length ? '' : 'display:none;'}">
+              <div class="panel-header">
+                <div class="panel-title" style="color:var(--neon-yellow);">
+                  ${Icons.trophy}
+                  <span>Ganadores del Sorteo</span>
+                  <span class="count-badge" style="background:rgba(255,208,0,0.15); color:var(--neon-yellow);">${state.winners.length}</span>
                 </div>
-                <ul class="winners-list">
-                  ${state.winners.map((w, idx) => `
-                    <li class="winner-entry">
-                      <span>${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🎖️'} ${w.name}</span>
-                      <span style="font-size:11px; opacity:0.75;">${w.time}</span>
-                    </li>
-                  `).join('')}
-                </ul>
+                <button class="btn btn-glass btn-sm" onclick="window.ruletaActions.clearWinners()">
+                  Limpiar
+                </button>
               </div>
-            ` : ''}
+              <ul class="winners-list">
+                ${state.winners.map((w, idx) => `
+                  <li class="winner-entry">
+                    <div class="winner-entry-left">
+                      <span style="color:var(--neon-yellow);">${idx === 0 ? Icons.trophy : Icons.medal}</span>
+                      <span class="winner-entry-name">${w.name}</span>
+                    </div>
+                    <span style="font-size:11.5px; opacity:0.8; flex-shrink:0;">${w.time}</span>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
 
           </div>
         </div>
@@ -2303,22 +2733,22 @@
           <!-- Tab Navigation -->
           <div class="mobile-tabs">
             <button class="tab-btn ${state.mobileTab === 'remote' ? 'active' : ''}" onclick="window.ruletaActions.setMobileTab('remote')">
-              🎮 Control Remoto
+              ${Icons.gamepad} Control Remoto
             </button>
             <button class="tab-btn ${state.mobileTab === 'participants' ? 'active' : ''}" onclick="window.ruletaActions.setMobileTab('participants')">
-              👥 Participantes (${state.participants.length})
+              ${Icons.users} Participantes (${state.participants.length})
             </button>
           </div>
 
           ${state.mobileTab === 'remote' ? `
             <!-- Remote Control Tab -->
             <div class="glass-card remote-spin-box">
-              <span style="font-size:13px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; font-weight:700;">
+              <span style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; font-weight:700;">
                 Sorteo en Pantalla
               </span>
 
               <button class="remote-spin-btn" ${state.spinning || state.participants.length < 2 ? 'disabled' : ''} onclick="window.ruletaActions.spin()">
-                <span>${state.spinning ? '🌀' : '⚡'}</span>
+                <span>${state.spinning ? Icons.sparkles : Icons.play}</span>
                 <span>${state.spinning ? 'GIRANDO' : '¡GIRAR!'}</span>
               </button>
 
@@ -2326,12 +2756,23 @@
                 ${state.spinning ? '¡La ruleta está girando en vivo!' : state.participants.length < 2 ? 'Agrega al menos 2 participantes' : `Listo para girar (${state.participants.length} en la ruleta)`}
               </div>
 
+              <!-- Quick Single Add from Remote -->
+              <form onsubmit="event.preventDefault(); window.ruletaActions.submitAddParticipant(this.quickName.value); this.reset();" class="input-row" style="width:100%; margin-top:20px;">
+                <input type="text" name="quickName" class="input-styled" placeholder="Añade tu nombre a la ruleta..." autocomplete="off" />
+                <button type="submit" class="btn btn-primary btn-sm">
+                  ${Icons.plus}
+                </button>
+              </form>
+
               ${state.winners.length ? `
-                <div style="margin-top:24px; width:100%; text-align:left;">
+                <div style="margin-top:20px; width:100%; text-align:left;">
                   <span style="font-size:12px; color:var(--neon-yellow); font-weight:700; display:block; margin-bottom:8px;">Último Ganador:</span>
                   <div class="winner-entry">
-                    <span>🏆 ${state.winners[0].name}</span>
-                    <span style="font-size:12px;">${state.winners[0].time}</span>
+                    <div class="winner-entry-left">
+                      <span style="color:var(--neon-yellow);">${Icons.trophy}</span>
+                      <span class="winner-entry-name">${state.winners[0].name}</span>
+                    </div>
+                    <span style="font-size:11.5px; opacity:0.8;">${state.winners[0].time}</span>
                   </div>
                 </div>
               ` : ''}
@@ -2341,30 +2782,35 @@
             <div class="glass-card">
               <div class="panel-header">
                 <div class="panel-title">
+                  ${Icons.users}
                   <span>Agregar a la Ruleta</span>
                 </div>
-                <button class="btn btn-glass" style="padding:6px 12px; font-size:12px;" onclick="window.ruletaActions.openBatchModal()">
-                  📋 Pegar Lista
+                <button class="btn btn-glass btn-sm" onclick="window.ruletaActions.openBatchModal()">
+                  ${Icons.paste} Pegar Lista
                 </button>
               </div>
 
               <form onsubmit="event.preventDefault(); window.ruletaActions.submitAddParticipant(this.mobPName.value); this.reset();" class="input-row">
                 <input type="text" name="mobPName" class="input-styled" placeholder="Escribe tu nombre..." autocomplete="off" autofocus />
-                <button type="submit" class="btn btn-primary" style="padding:10px 18px;">Agregar</button>
+                <button type="submit" class="btn btn-primary">
+                  ${Icons.plus} Agregar
+                </button>
               </form>
 
-              <div class="panel-title" style="margin: 18px 0 10px; font-size:15px;">
+              <div class="panel-title" style="margin: 16px 0 10px; font-size:15px;">
                 <span>En la Ruleta (${state.participants.length})</span>
               </div>
 
-              <ul class="participants-list" style="max-height: 320px;">
+              <ul class="participants-list" style="max-height: 340px;">
                 ${state.participants.length ? state.participants.map((p, idx) => `
                   <li class="participant-item">
                     <div class="p-info">
                       <span class="p-color-dot" style="background:${PALETTE[idx % PALETTE.length]}; color:${PALETTE[idx % PALETTE.length]}"></span>
                       <span class="p-name">${p.name}</span>
                     </div>
-                    <button class="p-remove" onclick="window.ruletaActions.removeParticipant('${p.id}')" title="Eliminar">✕</button>
+                    <button class="p-remove" onclick="window.ruletaActions.removeParticipant('${p.id}')" aria-label="Eliminar ${p.name}">
+                      ${Icons.x}
+                    </button>
                   </li>
                 `).join('') : `
                   <div class="empty-placeholder">
@@ -2383,12 +2829,20 @@
       return `
         <div class="modal-overlay" onclick="if(event.target === this) window.ruletaActions.closeWinnerModal()">
           <div class="modal-card">
-            <div class="trophy-badge">🏆</div>
+            <div class="trophy-badge">
+              <span style="font-size:36px; display:flex;">${Icons.trophy}</span>
+            </div>
             <div class="winner-title">¡Tenemos un Ganador!</div>
             <div class="winner-name-highlight">${state.winnerModal.name}</div>
-            <button class="btn btn-gold" style="width:100%; font-size:17px;" onclick="window.ruletaActions.closeWinnerModal()">
-              ¡Continuar!
-            </button>
+            
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <button class="btn btn-gold" style="width:100%; font-size:16px;" onclick="window.ruletaActions.closeWinnerModal()">
+                ${Icons.play} ¡Continuar / Siguiente Giro!
+              </button>
+              <button class="btn btn-glass" style="width:100%; font-size:14px;" onclick="window.ruletaActions.copyWinnerName('${state.winnerModal.name}')">
+                ${Icons.copy} Copiar Nombre
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -2399,16 +2853,19 @@
       return `
         <div class="modal-overlay" onclick="if(event.target === this) window.ruletaActions.closeBatchModal()">
           <div class="modal-card" style="text-align:left;">
-            <div class="panel-title" style="margin-bottom:12px;">
-              <span>📋 Pegar Lista de Participantes</span>
+            <div class="panel-title" style="margin-bottom:10px;">
+              ${Icons.paste}
+              <span>Pegar Lista de Participantes</span>
             </div>
             <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">
-              Pega nombres separados por saltos de línea, comas o desde Excel / WhatsApp.
+              Pega nombres separados por saltos de línea, comas o directamente desde Excel y WhatsApp.
             </p>
             <textarea id="batchTextInput" class="textarea-styled" placeholder="Ana García&#10;Carlos López&#10;María Rodríguez&#10;Juan Pablo..."></textarea>
             <div style="display:flex; justify-content:flex-end; gap:10px;">
               <button class="btn btn-glass" onclick="window.ruletaActions.closeBatchModal()">Cancelar</button>
-              <button class="btn btn-primary" onclick="window.ruletaActions.submitBatch(document.getElementById('batchTextInput').value)">Importar Lista</button>
+              <button class="btn btn-primary" onclick="window.ruletaActions.submitBatch(document.getElementById('batchTextInput').value)">
+                ${Icons.check} Importar Lista
+              </button>
             </div>
           </div>
         </div>
@@ -2418,33 +2875,34 @@
     function renderQRModal() {
       if (!state.qrModalOpen) return '';
       const mobileUrl = getMobileUrl(state.roomCode);
-      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(mobileUrl)}`;
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=8&data=${encodeURIComponent(mobileUrl)}`;
 
       return `
         <div class="modal-overlay" onclick="if(event.target === this) window.ruletaActions.toggleQRModal()">
           <div class="modal-card">
-            <h3 class="panel-title" style="justify-content:center; margin-bottom:8px; font-size:20px;">
-              <span>📱 Conectar Teléfono Celular</span>
+            <h3 class="panel-title" style="justify-content:center; margin-bottom:6px; font-size:20px;">
+              ${Icons.smartphone}
+              <span>Conectar Teléfono Celular</span>
             </h3>
             <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">
-              Abre la cámara de tu celular o el navegador y conéctate a la misma red Wi-Fi:
+              Abre la cámara de tu celular para conectarte a la ruleta:
             </p>
             <div style="background:white; padding:12px; border-radius:16px; display:inline-block; margin-bottom:14px;">
               <img src="${qrApiUrl}" style="width:200px; height:200px; display:block;" alt="Código QR" />
             </div>
             
             <div style="background:rgba(255,255,255,0.06); padding:10px; border-radius:10px; margin-bottom:14px; border:1px solid var(--card-border);">
-              <span style="font-size:12px; color:var(--text-muted); display:block;">Enlace directo para tu celular:</span>
-              <span style="font-size:14px; font-weight:700; color:var(--neon-cyan); word-break:break-all;">${mobileUrl}</span>
+              <span style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:2px;">Enlace directo:</span>
+              <span style="font-size:13.5px; font-weight:700; color:var(--neon-cyan); word-break:break-all;">${mobileUrl}</span>
             </div>
 
             <div style="margin-bottom:18px;">
-              <span style="font-size:13px; color:var(--text-muted); display:block;">Código de Sala:</span>
+              <span style="font-size:12px; color:var(--text-muted); display:block;">Código de Sala:</span>
               <span class="room-code-display" style="font-size:36px;">${state.roomCode}</span>
             </div>
             <div style="display:flex; gap:10px;">
               <button class="btn btn-glass" style="flex:1;" onclick="window.ruletaActions.copyRoomLink('${mobileUrl}')">
-                🔗 Copiar Enlace
+                ${Icons.copy} Copiar Enlace
               </button>
               <button class="btn btn-primary" style="flex:1;" onclick="window.ruletaActions.toggleQRModal()">
                 Cerrar
@@ -2492,6 +2950,13 @@
         triggerRender();
       },
 
+      startDirectPlay: () => {
+        state.roomCode = '';
+        state.view = 'host';
+        audio.playClick();
+        triggerRender();
+      },
+
       startMobile: () => {
         const urlParams = new URLSearchParams(window.location.search);
         let room = urlParams.get('room');
@@ -2513,17 +2978,18 @@
         triggerRender();
       },
 
+      setMobileStageTab: (tab) => {
+        state.mobileStageTab = tab;
+        audio.playClick();
+        triggerRender();
+        if (tab === 'ruleta') {
+          setTimeout(drawWheel, 60);
+        }
+      },
+
       toggleAudio: () => {
         audio.toggleMute();
         triggerRender();
-      },
-
-      toggleFullscreen: () => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        } else {
-          document.exitFullscreen().catch(() => {});
-        }
       },
 
       toggleQRCard: () => {
@@ -2548,9 +3014,7 @@
         }
         audio.playClick();
         triggerRender();
-        setTimeout(() => {
-          drawWheel();
-        }, 80);
+        setTimeout(drawWheel, 80);
       },
 
       toggleQRModal: () => {
@@ -2562,7 +3026,14 @@
       copyRoomLink: (url) => {
         if (navigator.clipboard) {
           navigator.clipboard.writeText(url);
-          showToast('✓ Enlace copiado al portapapeles');
+          showToast(`${Icons.check} Enlace copiado al portapapeles`);
+        }
+      },
+
+      copyWinnerName: (name) => {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(name);
+          showToast(`${Icons.check} Nombre copiado: ${name}`);
         }
       },
 
@@ -2581,10 +3052,12 @@
         parseBatchText(text);
       },
 
-      loadPresetMenu: () => {
-        const choice = confirm('¿Cargar nombres de muestra? (Aceptar para Nombres, Cancelar para Números 1-10)');
-        if (choice) loadPreset('sample');
-        else loadPreset('numbers');
+      loadPreset: (type) => {
+        loadPreset(type);
+      },
+
+      shuffleParticipants: () => {
+        shuffleParticipants();
       },
 
       submitAddParticipant: (name) => {
@@ -2645,7 +3118,7 @@
       }
     };
 
-    // --- Window Resize and Fullscreen Listeners for Canvas ---
+    // --- Window Listeners for Canvas Responsiveness ---
     window.addEventListener('resize', () => {
       if (state.view === 'host') {
         drawWheel();
@@ -2662,7 +3135,7 @@
       }
     });
 
-    // --- URL Query Parameter Auto-Join Detection (for QR Scans) ---
+    // --- URL Query Parameter Auto-Join Detection ---
     async function checkUrlAutoJoin() {
       await fetchServerInfo();
 
